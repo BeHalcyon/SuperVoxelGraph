@@ -69,25 +69,25 @@ SPEEDf21.raw        //volume relative path
 Results for STEP 1:
 -----------------------------------------------------
 
-![xy plane](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/design%20sketch_xyplane.png)
-![yz plane](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/design%20sketch_yzplane.png)
-![3D results](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/design%20sketch_volumerendering.png)
-![3D results](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/design%20sketch_asteroid_tev.png)
-![3D results](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/design%20sketch_MANIX.png)
-![3D results](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/design%20sketch_tooth.png)
+![xy plane](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_xyplane.png)
+![yz plane](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_yzplane.png)
+![3D results](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_volumerendering.png)
+![3D results](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_asteroid_tev.png)
+![3D results](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_MANIX.png)
+![3D results](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_tooth.png)
 
 
 Results for STEP 2 (jet_mixfrix_0051):
 -----------------------------------------------------
-![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/super-voxel-graph.png)
-![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/super-voxel-graph2.png)
+![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph.png)
+![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph2.png)
 
 
 Results for STEP 3:
 -----------------------------------------------------
 (A modification for distance measurement to achieve irregular super-voxels)
-![image](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/merged_combustion.png)
-![image](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/merged_H.png)
+![image](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/merged_combustion.png)
+![image](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/merged_H.png)
 
 Reference:
 -----------------------------------------------------
