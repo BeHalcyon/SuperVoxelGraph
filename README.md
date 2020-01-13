@@ -71,9 +71,9 @@ SLIC3DSuperVoxel.exe --TAG=parameter_value
 
 Example:
 ```c
-SLIC3DSuperVoxel.exe --vifo_path="C:/mixfrac.vifo" --merge=0
+SLIC3DSuperVoxel.exe --configure_file="C:/*.json"
 ```
-![cmdline](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/cmdline.png)
+<!-- ![cmdline](https://github.com/XiangyangHe/SuperVoxelGraph/tree/master/image/cmdline.png) -->
 
 
 ## vifo file format:
