@@ -157,19 +157,24 @@ Results for STEP 1:
 
 Results for STEP 2 (jet_mixfrix_0051):
 -----------------------------------------------------
-<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph.png" width=350>
+<!-- <img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph.png" width=600>
 
-<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph2.png" width=350>
+<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph2.png" width=600> -->
 
-<!-- ![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph.png)
-![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph2.png) -->
+![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph.png)
+![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph2.png)
 
 
 Results for STEP 3:
 -----------------------------------------------------
 (A modification for distance measurement to achieve irregular super-voxels)
-![image](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/merged_combustion.png)
-![image](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/merged_H.png)
+
+<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/merged_combustion.png" width=600>
+
+<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/merged_H.png" width=600>
+
+<!-- ![image](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/merged_combustion.png)
+![image](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/merged_H.png) -->
 
 Reference:
 -----------------------------------------------------
