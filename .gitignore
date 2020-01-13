@@ -10,6 +10,7 @@
 *.gpickle
 *.txt
 *.csv
+*.raw
 SuperVoxel2Graph_abort/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
