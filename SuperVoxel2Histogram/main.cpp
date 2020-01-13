@@ -75,6 +75,8 @@ void saveVector(const vector<vector<int>>& arr, const string& file_name)
 
 int main(int argc, char* argv[])
 {
+	clock_t time_begin = clock();
+	
 	if (argc <= 1)
 	{
 		vm::println("Please use command line parameter.");
@@ -190,5 +192,7 @@ int main(int argc, char* argv[])
 		vm::println("{}", e.what());
 	}
 	
-	
+	clock_t time_end = clock();
+
+	vm::println("Time for supervoxel2histogram : {}s.", (time_end - time_begin) / 1000.0);
 }

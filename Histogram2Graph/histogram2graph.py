@@ -5,6 +5,8 @@ import json
 import sys
 
 import os
+import time
+
 
 def histogramToGraph(json_file_name):
     f = open(json_file_name)
@@ -62,6 +64,8 @@ def saveGraph(G, graph_file_name):
     print("SuperGraph has been saved.")
 
 if __name__ == "__main__":
+    start = time.clock()
+
     if len(sys.argv) == 1:
         print("Please use command line parameter.")
     else:
@@ -72,4 +76,7 @@ if __name__ == "__main__":
                 addLabelForGraph(G, sys.argv[i], i-1)
 
         saveGraph(G, gexf_file_name)
+
+    elapsed = (time.clock() - start)
+    print("Time for histogram2graph: ", elapsed, "s.")
 

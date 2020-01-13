@@ -8,7 +8,7 @@
 #include "cmdline.h"
 
 #include "json_struct.h"
-
+#include <time.h>
 
 
 
@@ -416,7 +416,7 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-
+	clock_t time_begin = clock();
 	if(argc <= 1)
 	{
 		doAlgorithmWithoutCmdLine();
@@ -426,4 +426,7 @@ int main(int argc, char* argv[])
 		//doAlgorithmWithCmdLine(argc, argv);
 		doAlgorithmWithJsonConfigure(argc, argv);
 	}
+	clock_t time_end = clock();
+
+	vm::println("Time for volume2supervoxel : {}s.", (time_end - time_begin) / 1000.0);
 }
