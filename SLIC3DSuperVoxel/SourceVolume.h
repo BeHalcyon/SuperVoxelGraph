@@ -58,6 +58,9 @@ public:
 	 * \param index: The volume index.
 	 */
 	std::vector<unsigned char>* getRegularVolume(int index);
+
+	std::vector<double>* getOriginVolume(int index);
+	
 	/**
 	 * \brief Get the down sampling data for univariate data.
 	 */

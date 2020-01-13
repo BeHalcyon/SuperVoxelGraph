@@ -33,6 +33,75 @@
     <ClInclude Include="image_graph.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\attributes.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\bomb.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\cmdline.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\common.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\compile_spec.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\concepts.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\concurrency.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\fmt.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\ieverything.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\json_binding.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\log.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\modules.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\nonnull.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\option.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\ref.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\sigslot.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\threadpool.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\timer.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\traits.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\version.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\vmnew.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VMUtils\include\VMUtils\with.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="json_struct.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SLIC3D.cpp">

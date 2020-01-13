@@ -7,6 +7,11 @@
 #include "graph_segmentation.h"
 #include "cmdline.h"
 
+#include "json_struct.h"
+
+
+
+
 void readInfoFile(const string& infoFileName, int& data_number, string& datatype, hxy::my_int3& dimension, hxy::my_double3& space,
 	vector<string>& file_list)
 {
@@ -237,7 +242,7 @@ void doAlgorithmWithCmdLine(int argc, char* argv[])
 	auto file_path = file_list[0].substr(0, file_list[0].find_last_of('.'));
 
 	SourceVolume source_volume(file_list, dimension.x, dimension.y, dimension.z, datatype);
-
+	                                                                                                                    
 	//source_volume.loadVolume();	//origin data
 	source_volume.loadRegularVolume(); //[0, 255] data
 	//source_volume.loadDownSamplingVolume(); //[0, histogram_dimension] data
@@ -295,6 +300,120 @@ void doAlgorithmWithCmdLine(int argc, char* argv[])
 	delete[] klabels;
 }
 
+void doAlgorithmWithJsonConfigure(int argc, char* argv[])
+{
+	// create a parser
+	cmdline::parser a;
+
+	a.add<string>("configure_file", 'c', "json configure file", true, "");
+
+	// Call add method without a type parameter.
+	//a.add("non_parameter", '\0', "gzip when transfer");
+
+	a.parse_check(argc, argv);
+
+	ConfigureJSONStruct configure_json;
+
+	std::string		configure_json_file = a.get<std::string>("configure_file");
+
+	try
+	{
+		std::ifstream input_file(configure_json_file);
+		input_file >> configure_json;
+
+		
+
+		string			infoFileName = configure_json.data_path.vifo_file;
+		int				data_number;
+		string			datatype;
+		hxy::my_int3	dimension;
+		hxy::my_double3	space;
+		vector<string>	file_list;
+
+		readInfoFile(infoFileName, data_number, datatype, dimension, space, file_list);
+
+		//auto file_path = file_list[0].substr(0, file_list[0].find_last_of('.'));
+
+		SourceVolume source_volume(file_list, dimension.x, dimension.y, dimension.z, datatype);
+
+		//source_volume.loadVolume();	//origin data
+		source_volume.loadRegularVolume(); //[0, 255] data
+		//source_volume.loadDownSamplingVolume(); //[0, histogram_dimension] data
+
+		auto volume_index = configure_json.data_path.volume_index;
+		
+		auto volume_data = source_volume.getRegularVolume(volume_index);
+
+		//----------------------------------
+		// Initialize parameters
+		//----------------------------------
+		//int k = a.get<int>("cluster_number");
+		auto k = configure_json.volume2supervoxel.cluster_number;
+		//double m = 20;//Compactness factor. use a value ranging from 10 to 40 depending on your needs. Default is 10
+		double m = configure_json.volume2supervoxel.compactness_factor;//Compactness factor. use a value ranging from 10 to 40 depending on your needs. Default is 10
+		int* klabels = new int[dimension.x * dimension.y * dimension.z];
+		int num_labels(0);
+		SLIC3D slic_3d;
+		slic_3d.PerformSLICO_ForGivenK((*volume_data).data(), dimension.x, dimension.y, dimension.z, klabels, num_labels, k, m);
+
+		auto file_prefix = configure_json.data_path.file_prefix;
+
+		//if (a.get<bool>("super_voxel_label"))
+		if (configure_json.volume2supervoxel.output_super_voxel_label)
+		{
+			auto output_label_file = file_prefix + configure_json.file_name.label_file;
+			slic_3d.SaveSuperpixelLabels(klabels, dimension.x, dimension.y, dimension.z, output_label_file);
+		}
+		//if (a.get<bool>("gradient"))
+		if (configure_json.volume2supervoxel.output_gradient)
+		{
+			auto output_gradient_file = file_prefix + configure_json.file_name.gradient_file;
+			slic_3d.SaveGradient(output_gradient_file);
+		}
+		auto segment_boundary_array = new int[dimension.x * dimension.y * dimension.z];
+		slic_3d.DrawContoursAroundSegments(segment_boundary_array, klabels, dimension.x, dimension.y, dimension.z);
+
+		if (configure_json.volume2supervoxel.output_super_voxel_boundary)
+		{
+			auto output_boundary_file = file_prefix + configure_json.file_name.boundary_file;
+			slic_3d.SaveSegmentBouyndaries(segment_boundary_array,
+				dimension.x, dimension.y, dimension.z, output_boundary_file);
+		}
+
+		if (configure_json.volume2supervoxel.is_merge) {
+			//int k_threshold = a.get<int>("k_threshold");
+			int k_threshold = configure_json.volume2supervoxel.k_threshold;
+			auto merged_label = new int[dimension.x * dimension.y * dimension.z];
+
+			string output_merged_label_file = "";
+			//if (a.get<bool>("merged_label")) buf_file_path = file_path + "_merged_label.raw";
+			if (configure_json.volume2supervoxel.output_merged_label) output_merged_label_file = file_prefix + configure_json.file_name.merged_label_file;
+
+			doSuperVoxelMerge(merged_label, (*volume_data).data(),
+				source_volume.getRegularDimenion(),
+				klabels,
+				slic_3d.getGradient().data(),
+				dimension.x, dimension.y, dimension.z,
+				num_labels, k_threshold, output_merged_label_file);
+
+			// if (a.get<bool>("merged_boundary")) {
+			if (configure_json.volume2supervoxel.output_merged_boundary) {
+				auto output_merged_boundary_file = file_prefix + configure_json.file_name.merged_boundary_file;
+				slic_3d.DrawContoursAroundSegments(segment_boundary_array, merged_label, dimension.x, dimension.y, dimension.z);
+				slic_3d.SaveSegmentBouyndaries(segment_boundary_array, dimension.x, dimension.y, dimension.z, output_merged_boundary_file);
+			}
+			delete[] merged_label;
+		}
+		delete[] segment_boundary_array;
+		delete[] klabels;
+
+	}
+	catch (std::exception & e)
+	{
+		vm::println("{}", e.what());
+	}
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -304,6 +423,7 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		doAlgorithmWithCmdLine(argc, argv);
+		//doAlgorithmWithCmdLine(argc, argv);
+		doAlgorithmWithJsonConfigure(argc, argv);
 	}
 }

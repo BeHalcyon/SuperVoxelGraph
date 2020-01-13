@@ -9,6 +9,8 @@
 *.gexf
 *.gpickle
 *.txt
+*.csv
+SuperVoxel2Graph_abort/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

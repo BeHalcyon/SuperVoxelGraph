@@ -111,6 +111,12 @@ void SourceVolume::loadVolume()
 		std::vector<std::vector<float>> origin_data;
 		loadAndTransVolume(volume_file_name, volume_res, min_value, max_value, origin_data, volume_data);
 	}
+	else if(type_name=="int")
+	{
+		std::vector<std::vector<int>> origin_data;
+		loadAndTransVolume(volume_file_name, volume_res, min_value, max_value, origin_data, volume_data);
+
+	}
 	is_data_in_memory = true;
 	std::cout << "The origin volume data has been calculated successfully." << std::endl;
 }
@@ -185,6 +191,20 @@ std::vector<unsigned char>* SourceVolume::getRegularVolume(int index)
 		loadRegularVolume();
 	}
 	return &(regular_data[index]);
+}
+//Debug 20200113
+std::vector<double>* SourceVolume::getOriginVolume(int index)
+{
+	if (index < 0 || index >= volume_number)
+	{
+		std::cout << "The index out of bounds in getOriginVolume" << std::endl;
+		exit(-1);
+	}
+	if (!is_data_in_memory)
+	{
+		loadVolume();
+	}
+	return &(volume_data[index]);
 }
 
 std::vector<int>* SourceVolume::getDownsamplingVolume(int index)
