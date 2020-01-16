@@ -12,14 +12,15 @@ def loadLabelId(csv_file_name):
     labeled_data = np.array(labeled_data)  # 将list数组转化成array数组便于查看数据结构
     return labeled_data
 
-labeled_data = loadLabelId("tooth_labeled.csv")
+# labeled_data = loadLabelId("tooth_labeled.csv")
+labeled_data = loadLabelId("manix_labeled.csv")
 
 
-dimension = [128, 128, 160] # x y z
-file_path = 'E:\\TOOTH_8bit_128_128_160\\TOOTH_8bit_128_128_160.raw'
+dimension = [256, 256, 230] # x y z
+file_path = 'E:/CThead/manix/MANIX.raw'
 histogram_size = 256
 volume_array = np.fromfile(file_path, dtype=np.uint8)
-label_array = np.fromfile('I:\\supergraph buffer\\TOOTH_8bit_128_128_160_label_int.raw', dtype=np.int)
+label_array = np.fromfile('I:\\supergraph buffer\\manix_label_int.raw', dtype=np.int)
 
 buf_volume_array = np.zeros(dtype=np.uint8, shape=volume_array.shape)
 
@@ -30,6 +31,6 @@ for j in labeled_data:
 # buf_index = np.where(label_array == np.where(labels == i))
 # print(np.where(labels == i))
 # buf_volume_array[buf_index] = volume_array[buf_index]
-buf_volume_array.tofile('TOOTH_8bit_128_128_160_test.raw')
+buf_volume_array.tofile('spheres_test.raw')
 
 print("volume has been transferred.")
