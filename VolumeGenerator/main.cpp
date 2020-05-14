@@ -9,6 +9,7 @@ struct SphereJsonStruct : public vm::json::Serializable<SphereJsonStruct>
 	VM_JSON_FIELD(std::vector<size_t>, central_point);
 	VM_JSON_FIELD(double, radius);
 	VM_JSON_FIELD(double, value);
+	VM_JSON_FIELD(double, range);
 };
 
 struct VolumeGeneratorJSONStruct : public vm::json::Serializable<VolumeGeneratorJSONStruct>
@@ -59,7 +60,7 @@ int main(int argc, char* argv[])
 		for(auto i=0;i<sphere_number;i++)
 		{
 			auto & buf_json_sphere = configure_json.sphere[i];
-			spheres.push_back({ buf_json_sphere.central_point, buf_json_sphere.radius ,buf_json_sphere.value});
+			spheres.push_back({ buf_json_sphere.central_point, buf_json_sphere.radius ,buf_json_sphere.value, buf_json_sphere.range});
 		}
 
 		if(volume_type == "uchar")
@@ -93,13 +94,5 @@ int main(int argc, char* argv[])
 	{
 		vm::println("{}", e.what());
 	}
-
-
-	
-	
-	
-	
-
-
 	
 }

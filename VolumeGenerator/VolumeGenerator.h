@@ -8,6 +8,7 @@ struct Sphere
 	std::vector<size_t> central_point = { 0, 0, 0 };
 	double radius = 0;
 	double value;
+	double range;
 };
 
 
@@ -71,6 +72,9 @@ void VolumeGenerator<T>::addSphere(const Sphere& sphere)
 
 	vm::println("Min box for sphere {}: {}", shape_number, min_bounding_box);
 	vm::println("Max box for sphere {}: {}", shape_number, max_bounding_box);
+
+
+	auto& point_coor = sphere.central_point;
 	
 	for(size_t k=min_bounding_box[2];k<=max_bounding_box[2];k++)
 	{
@@ -81,7 +85,17 @@ void VolumeGenerator<T>::addSphere(const Sphere& sphere)
 				auto index = k * dimension[0] * dimension[1] + j * dimension[0] + i;
 
 				if(isInSphere({i,j,k},sphere))
-					volume_data[index] = static_cast<T>(sphere.value);
+				{
+					auto distance = sqrt((point_coor[0] - i) * (point_coor[0] - i) +
+						(point_coor[1] - j) * (point_coor[1] - j) +
+						(point_coor[2] - k) * (point_coor[2] - k));
+					auto value = sphere.value + (distance  / sphere.radius) * sphere.range;
+
+					if (value < 0) value = 0;
+					
+					volume_data[index] = static_cast<T>(value);
+				}
+					
 			}
 		}
 	}

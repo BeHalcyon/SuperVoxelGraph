@@ -79,4 +79,3 @@ if __name__ == "__main__":
 
     elapsed = (time.clock() - start)
     print("Time for histogram2graph: ", elapsed, "s.")
-
