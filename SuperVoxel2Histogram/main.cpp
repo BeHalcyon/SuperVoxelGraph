@@ -45,7 +45,7 @@ void readInfoFile(const std::string& infoFileName, int& data_number, std::string
 }
 
 
-void saveVector(const vector<vector<float>>& arr, const string& file_name)
+void saveLabelVector(const vector<vector<float>>& arr, const string& file_name)
 {
 	ofstream writer(file_name);
 	for(auto& i: arr)
@@ -58,18 +58,63 @@ void saveVector(const vector<vector<float>>& arr, const string& file_name)
 	}
 	vm::println("Label histogram has been saved.");
 }
-void saveVector(const vector<vector<int>>& arr, const string& file_name)
+void saveEdge(const vector<vector<int>>& arr, const string& file_name)
 {
 	ofstream writer(file_name);
-	for (auto& i : arr)
+	for (auto i=0; i< arr.size(); i++)
 	{
-		for (auto j = 0; j < i.size() - 1; j++)
+		for (auto j = 0; j < arr[i].size(); j++)
 		{
-			writer << i[j] << " ";
+			if (arr[i][j]!=0)
+			{
+				//writer << i[j] << " ";
+				writer << i << " " << j << " " << arr[i][j] <<std:: endl;
+			}
+			
+			//writer << i[j] << " ";
 		}
-		writer << i[i.size() - 1] << std::endl;
+		//writer << i[i.size() - 1] << std::endl;
 	}
 	vm::println("edge histogram has been saved.");
+}
+
+
+void readGradientFile(const string gradient_file_name, const hxy::my_int3& dimension, std::vector<float>& gradient_volume_data)
+{
+
+	std::ifstream in(gradient_file_name, std::ios::in | std::ios::binary);
+	unsigned char* contents = nullptr;
+	if (in)
+	{
+		in.seekg(0, std::ios::end);
+		const long int fileSize = in.tellg();
+		contents = static_cast<unsigned char*>(malloc(static_cast<size_t>(fileSize + 1)));
+		in.seekg(0, std::ios::beg);
+		in.read(reinterpret_cast<char*>(contents), fileSize);
+		in.close();
+		contents[fileSize] = '\0';
+		std::cout << "Load data successfully.\nThe file path is : " << gradient_file_name.c_str() << std::endl;
+
+		std::cout << "The file size is : " << fileSize << std::endl;
+
+
+		const long long volume_length = dimension.x * dimension.y * dimension.z;
+
+		gradient_volume_data.resize(volume_length);
+
+		for (auto x = 0; x < volume_length; ++x)
+		{
+			int src_idx = sizeof(float) * (x);
+			memcpy(&gradient_volume_data[x], &contents[src_idx], sizeof(float));
+		}
+	}
+	else
+	{
+		std::cout << "The file " << gradient_file_name.c_str() << " fails loaded." << std::endl;
+		exit(-1);
+	}
+	free(contents);
+
 }
 
 
@@ -121,16 +166,41 @@ int main(int argc, char* argv[])
 		auto label_number = *max_index + 1;
 
 
-
+		// Create the array to store the vector for each label
 		std::vector<std::vector<float>> label_histogram_array(label_number);
 		for (auto& i : label_histogram_array) { i.resize(histogram_size, 0.0); }
-
 		vm::println("SuperVoxel block number : {}", label_number);
 
 		std::vector<std::vector<int>> edge_weight_array(label_number);
 		for (auto& i : edge_weight_array) { i.resize(label_number, 0); }
+		
 
 
+		// Create the array to store the average gradient for each label.
+		std::vector<float> label_sum_gradient_array(label_number, 0);
+		std::vector<int> label_number_array(label_number, 0);
+
+		// Create the array to store the gradient raw data for each label.
+		std::vector<float> gradient_volume_data;
+
+		// Read the gradient volume from file.
+		auto gradient_volume_file = file_prefix + configure_json.file_name.gradient_file;
+		readGradientFile(gradient_volume_file, dimension, gradient_volume_data);
+
+
+
+		// Create the array to store the information entropy for each label.
+		std::vector<float> label_entropy_array(label_number, 0);
+
+
+
+		// Create the array to store the barycenter as the spatial position of the labels
+		// TODO : normalize the barycenter?
+		std::vector<std::vector<int>> label_barycenter(label_number, {0,0,0});
+		//std::vector<int> label_barycenter_number(label_number, 0);
+		
+		
+		
 		std::vector<int> x_offset = { 1, -1, 0, 0, 0, 0 };
 		std::vector<int> y_offset = { 0, 0, 1, -1, 0, 0 };
 		std::vector<int> z_offset = { 0, 0, 0, 0, 1, -1 };
@@ -160,11 +230,23 @@ int main(int argc, char* argv[])
 				}
 			}
 			label_histogram_array[(*labeled_data)[i]][(*volume_data)[i]] ++;
-
-			if (i % 100000 == 0)
+			//Update the sum gradient
+			label_sum_gradient_array[(*labeled_data)[i]] += gradient_volume_data[i];
+			//Update the label number
+			label_number_array[(*labeled_data)[i]] ++;
+			// Update the barycenter
+			label_barycenter[(*labeled_data)[i]][0] += x;
+			label_barycenter[(*labeled_data)[i]][1] += y;
+			label_barycenter[(*labeled_data)[i]][2] += z;
+			// Update the barycenter number
+			//label_barycenter_number[(*labeled_data)[i]] ++;
+			
+			if (i % (volume_size/10) == 0)
 				vm::println("Process {} %.", (i*1.0 / volume_size)*100);
 		}
 
+		
+		//Normalize the histogram
 		for (auto i = 0; i < label_number; i++)
 		{
 			// auto buf_max_index = max_element(label_histogram_array[i].begin(), label_histogram_array[i].end());
@@ -180,12 +262,64 @@ int main(int argc, char* argv[])
 			{
 				j /= max_value;
 			}
+
+			// Calculate the entropy
+			for (auto& j : label_histogram_array[i])
+			{
+				if (j == 0) continue;
+				// The information entropy is a negative number
+				label_entropy_array[i] -= j * log2(j);
+			}
 		}
 
-		// 保存
-		saveVector(label_histogram_array, file_prefix + configure_json.file_name.label_histogram_file);
-		saveVector(edge_weight_array, file_prefix + configure_json.file_name.edge_weight_file);
+		string calculated_information = "[ value histogram information";
+		// is_histogram_stored is default to set to 1 for calculation forever. But it can be set to 0 for filtering the date.
+		if(!configure_json.supervoxel2histogram.is_histogram_stored)
+		{
+			label_histogram_array.clear();
+			calculated_information = "[ ";
+		}
 
+		if(configure_json.supervoxel2histogram.is_gradient_stored)
+		{
+			// Add average gradient for each label to the histogram vector
+			for (auto i = 0; i < label_number; i++)
+			{
+				auto average_gradient = 0;
+				if (label_number_array[i] != 0)
+					average_gradient = label_sum_gradient_array[i] / label_number_array[i];
+				label_histogram_array[i].push_back(average_gradient);
+			}
+			calculated_information += ", gradient";
+		}
+		if(configure_json.supervoxel2histogram.is_entropy_stored)
+		{
+			// Add information entropy for each label to the histogram vector
+			for (auto i = 0; i < label_number; i++)
+			{
+				label_histogram_array[i].push_back(label_entropy_array[i]);
+			}
+			calculated_information += ", information entropy";
+		}
+		if(configure_json.supervoxel2histogram.is_barycenter_stored)
+		{
+			// Add barycenter for each label to the histogram vector
+			for (auto i = 0; i < label_number; i++)
+			{
+				label_histogram_array[i].push_back(label_barycenter[i][0] * 1.0f / label_number_array[i]);
+				label_histogram_array[i].push_back(label_barycenter[i][1] * 1.0f / label_number_array[i]);
+				label_histogram_array[i].push_back(label_barycenter[i][2] * 1.0f / label_number_array[i]);
+			}
+			calculated_information += ", barycenter";
+		}
+
+		calculated_information += " ]";
+
+		// 保存
+		saveLabelVector(label_histogram_array, file_prefix + configure_json.file_name.label_histogram_file);
+		saveEdge(edge_weight_array, file_prefix + configure_json.file_name.edge_weight_file);
+
+		vm::println("The stored information for each label : {}", calculated_information);
 	}
 	catch(std::exception& e)
 	{

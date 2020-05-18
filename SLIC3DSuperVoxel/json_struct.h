@@ -41,6 +41,10 @@ struct Volume2SuperVoxelJSONStruct : public vm::json::Serializable<Volume2SuperV
 struct SuperVoxel2HistogramJSONStruct : public vm::json::Serializable<SuperVoxel2HistogramJSONStruct>
 {
 	VM_JSON_FIELD(int, histogram_size);
+	VM_JSON_FIELD(int, is_histogram_stored);
+	VM_JSON_FIELD(int, is_gradient_stored);
+	VM_JSON_FIELD(int, is_entropy_stored);
+	VM_JSON_FIELD(int, is_barycenter_stored);
 };
 
 struct Histogram2GraphJSONStruct : public vm::json::Serializable<Histogram2GraphJSONStruct>

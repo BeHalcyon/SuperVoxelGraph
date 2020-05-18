@@ -268,7 +268,7 @@ void SLIC3D::EnforceLabelConnectivity(
 					// adjacent label found before, and decrement label count.
 					//-------------------------------------------------------
 					//区域过小的话，需要直接与邻近区域合并
-					//三维情况下，超体素可能需要修改，原始是count <= SUPSZ >> 2
+					//TODO 三维情况下，超体素可能需要修改，原始是count <= SUPSZ >> 2
 					if (count <= SUPSZ >> 2)
 					{
 						for (int c = 0; c < count; c++)
@@ -465,6 +465,15 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 
 
 // Debug 20191102
+
+/**
+ * \brief Calculate the gradient squared of each voxel and store them in edges.
+ * \param volumevec 
+ * \param width 
+ * \param height 
+ * \param depth 
+ * \param edges 
+ */
 void SLIC3D::DetectLabEdges(
 	const double*				volumevec,
 	const int&					width,
@@ -741,5 +750,10 @@ void SLIC3D::SaveGradient(
 	}
 	outfile.close();
 	std::cout << "Gradient file for the super-voxels has been saved." << std::endl;
+}
+
+vector<double>& SLIC3D::getGradient()
+{
+	return edgemag;
 }
 

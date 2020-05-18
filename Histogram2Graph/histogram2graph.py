@@ -24,16 +24,24 @@ def histogramToGraph(json_file_name):
     print("edge information: ", edge_array.shape)
 
     G = nx.Graph()
+
     for i in range(label_number):
         G.add_node(i, cls=-1)
-
-        for j in range(i + 1, label_number):
-            if edge_array[i][j] > 0:
-                G.add_edge(i, j)
-
-    for i in range(label_number):
         for j in range(label_histogram_array[i].shape[0]):
             G.node[i][j] = str(label_histogram_array[i][j])
+
+    # for i in range(label_number):
+    #     G.add_node(i, cls=-1)
+        # for j in range(i + 1, label_number):
+        #     if edge_array[i][j] > 0:
+        #         G.add_edge(i, j)
+    # Add the edge information
+    for j in edge_array:
+        if j[2] != 0:
+            G.add_edge(int(j[0]), int(j[1]))
+
+
+    # print(G.node)
 
     gexf_file = file_prefix + json_content["file_name"]["graph_file"]
 
