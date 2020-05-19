@@ -138,13 +138,13 @@ private:
 	/// not the step size S.
 	//===========================================================================
 	void PerformSuperpixelSegmentation_VariableSandM(
-		vector<double>&				kseedintensity,
-		vector<double>&				kseedsx,
-		vector<double>&				kseedsy,
-		vector<double>&				kseedsz,
-		int*						klabels,
-		const int&					STEP,
-		const int&					NUMITR);
+		vector<double>& kseedintensity,
+		vector<double>& kseedsx,
+		vector<double>& kseedsy,
+		vector<double>& kseedsz,
+		int* klabels,
+		const int& STEP,
+		const int& NUMITR, const double& compactness_factor);
 
 	//===========================================================================
 	///	EnforceLabelConnectivity

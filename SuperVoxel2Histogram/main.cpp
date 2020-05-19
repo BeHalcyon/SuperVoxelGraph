@@ -156,12 +156,17 @@ int main(int argc, char* argv[])
 		auto volume_index = configure_json.data_path.volume_index;
 		// auto volume_data = source_volume.getRegularVolume(volume_index);
 
+		// [0, histogram_size]
 		auto volume_data = source_volume.getDownsamplingVolume(volume_index);
 
+
+		// Load labeled volume
 		auto labeled_volume_file = file_prefix + configure_json.file_name.label_file;
+		// The regular_histogram_dimension and downing_sampling_histogram_dimension parameters can be ignored.
 		SourceVolume labeled_volume({ labeled_volume_file }, dimension.x, dimension.y, dimension.z, "int", 256, 256);
 		auto labeled_data = labeled_volume.getOriginVolume(0);
 
+		// Label number is the max value of the labeled_data plus 1.
 		auto max_index = max_element((*labeled_data).begin(), (*labeled_data).end());
 		auto label_number = *max_index + 1;
 
@@ -180,14 +185,14 @@ int main(int argc, char* argv[])
 		std::vector<float> label_sum_gradient_array(label_number, 0);
 		std::vector<int> label_number_array(label_number, 0);
 
-		// Create the array to store the gradient raw data for each label.
-		std::vector<float> gradient_volume_data;
-
+		
 		// Read the gradient volume from file.
 		auto gradient_volume_file = file_prefix + configure_json.file_name.gradient_file;
-		readGradientFile(gradient_volume_file, dimension, gradient_volume_data);
-
-
+		SourceVolume gradient_volume({ gradient_volume_file }, dimension.x, dimension.y, dimension.z, "float", 256, 256);
+		// Create the array to store the gradient raw data for each label.
+		//std::vector<float> gradient_volume_data;
+		//readGradientFile(gradient_volume_file, dimension, gradient_volume_data);
+		auto gradient_volume_data = gradient_volume.getOriginVolume(0);
 
 		// Create the array to store the information entropy for each label.
 		std::vector<float> label_entropy_array(label_number, 0);
@@ -231,7 +236,7 @@ int main(int argc, char* argv[])
 			}
 			label_histogram_array[(*labeled_data)[i]][(*volume_data)[i]] ++;
 			//Update the sum gradient
-			label_sum_gradient_array[(*labeled_data)[i]] += gradient_volume_data[i];
+			label_sum_gradient_array[(*labeled_data)[i]] += (*gradient_volume_data)[i];
 			//Update the label number
 			label_number_array[(*labeled_data)[i]] ++;
 			// Update the barycenter

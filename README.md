@@ -25,9 +25,10 @@ The SuperVoxel2Histogram transfers calucated super-voxels be STEP 1 to node hist
 
 Note that the addition addtional information of each node (label/super-voxel) carries is listed as follows:
 1. the normalized scalar histogram with the size of #histogram_size#.
-2. the average gradient without normalization
-3. the information entropy without normalization
-4. the coordinate of the barycenter without normalization
+2. the average gradient without normalization (size: 1)
+3. the information entropy without normalization (size: 1)
+4. the coordinate of the barycenter without normalization (size: 3)
+The information length of each super-voxels is #histogram_size#+5.
 
 Input informaiton:
 ```c
@@ -67,7 +68,7 @@ Output information:
 *_supergraph.gexf: graph file for the volume data.
 ```
 
-**Note: The nodes currently contain two attributes: histogram information (0-300, where 0~255 are for the histogram inforamtion, 256 is for the gradient, 257 is for the information entropy, 258~260 are for the coordinate of the barycenter) and cls (defaulted to -1, set to 1 for training set and 2 for test set).**
+**Note: The nodes currently contain two attributes: histogram information [0, supervoxel2histogram.histogram_size+4], where [0, historam_size-1] are for the histogram inforamtion, [histogram_size ] is for the gradient, [histogram_size+1 ] is for the information entropy, [histogram_size+2, histogram_size+4] are for the coordinate of the barycenter) and cls (defaulted to -1, set to 1 for training set and 2 for test set).**
 **Out of Date Note: The nodes currently contain two attributes: histogram information (0-255) and cls (defaulted to -1, set to 1 for training set and 2 for test set).**
 
 **STEP 4. Merging similar super-voxels using graph-based volume segmentation** (Not completed)
@@ -111,37 +112,38 @@ SPEEDf21.raw        //volume relative path
   
     "file_name":
     {
-      "merged_label_file":"merged_label_int.raw",
-      "merged_boundary_file":"merged_boundary_int.raw",
-      "label_file":"label_int.raw",
-      "boundary_file":"boundary_int.raw",
-      "gradient_file":"gradient_float.raw",
-      "label_histogram_file":"label_histogram_array.txt",
-      "edge_weight_file":"edge_weight_array.txt",
-      "graph_file":"supergraph.gexf"
+      "merged_label_file":"merged_label_int.raw",//store all super-voxel ids from zero
+      "merged_boundary_file":"merged_boundary_int.raw",//[0, 255] for raw volume, 511 for boundary
+      "label_file":"label_int.raw",//store all super-voxel ids from zero
+      "boundary_file":"boundary_int.raw",//[0, 255] for raw volume, 511 for boundary
+      "gradient_file":"gradient_float.raw",// [0, +oo]
+      "label_histogram_file":"label_histogram_array.txt",// 2D arrray, the row represensts all the Quantitative information of a super-voxel
+      "edge_weight_file":"edge_weight_array.txt",//2D array that each row lists [i,j,w], representing super-voxel id i and j are neighboring and the weight between them is w
+      "graph_file":"supergraph.gexf"//the gephi file that stores the bulided graph
     },
     
     "volume2supervoxel":{
-      "cluster_number": 8196,
-      "output_super_voxel_label": 1,
-      "output_super_voxel_boundary": 1,
-      "output_gradient": 1,
-      "k_threshold": 100000,
-      "is_merge": 0,
-      "output_merged_label": 0,
-      "output_merged_boundary": 0,
-      "compactness_factor": 20
+      "cluster_number": 8196,//To control the rough number of generated super-voxels
+      "output_super_voxel_label": 1,//Whether to output the super-voxel labelled int file
+      "output_super_voxel_boundary": 1,//Whether to output the super-voxel boundary int file (this file will be reduced in [0,255], and the boundary is set to 511)
+      "output_gradient": 1,//Whether to output the gradient file (in float)
+      "k_threshold": 100000,//The value controls the merged results, a greater value contributes to a big super-voxel.
+      "is_merge": 0,// Whether to merge the super-voxels
+      "output_merged_label": 0,//Whether to output the merged super-voxels
+      "output_merged_boundary": 0,//Whether to output the boundary of the merged super-voxels
+      "compactness_factor": 20//Compactness factor. The weight given to spatial distance. A greater value contributes to a .Default is 20, and I have test the max value 2000000 will contribute a very regular result (less similar feature)
+      //Update: the compactness_factor contorl the maxintensity of each label. The greater value contributes to increase the weight of distance that makes the shape of each super-voxels more tight or regular.
     },
 
     "supervoxel2histogram":{
-      "histogram_size":256,
-      "is_histogram_stored":1,
-      "is_gradient_stored":1,
-      "is_entropy_stored":1,
-      "is_barycenter_stored":1
+      "histogram_size":256,//The histogram length for each label
+      "is_histogram_stored":1,//Whether store the historam, default to set to 1 to store
+      "is_gradient_stored":1,//Whether store the non-normalized gradient
+      "is_entropy_stored":1,//Whether store the entropy
+      "is_barycenter_stored":1//Whether store the baycenter
     },
     "histogram2graph":{
-      "histogram_size":256
+      "histogram_size":256//Not yet in use
     }
   }
 ```

@@ -74,7 +74,7 @@ void SLIC3D::PerformSLICO_ForGivenK(
 	//步长太小的情况下，添加一个小的值
 	int STEP = pow(double(sz) / double(K), 1.0/3) + 2.0;//adding a small value in the even the STEP size is too small.
 	//PerformSuperpixelSLIC(kseedsl, kseedsa, kseedsb, kseedsx, kseedsy, klabels, STEP, edgemag, m);
-	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 10);
+	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 10, m);
 	numlabels = kseedintensity.size();
 
 	int* nlabels = new int[sz];
@@ -141,7 +141,7 @@ void SLIC3D::PerformSLICO_ForGivenK(
 	//步长太小的情况下，添加一个小的值
 	int STEP = pow(double(sz) / double(K), 1.0 / 3) + 2.0;//adding a small value in the even the STEP size is too small.
 	//PerformSuperpixelSLIC(kseedsl, kseedsa, kseedsb, kseedsx, kseedsy, klabels, STEP, edgemag, m);
-	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 10);
+	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 10, m);
 	std::cout << "K-means clustering has been calculated." << std::endl;
 
 
@@ -317,7 +317,9 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 	vector<double>&				kseedsz,
 	int*						klabels,
 	const int&					STEP,
-	const int&					NUMITR)
+	const int&					NUMITR,
+	//Debug 20200519 add compactness_factor parameter
+	const double&					compactness_factor)
 {
 	int sz = m_width * m_height * m_depth;
 	const int numk = kseedintensity.size();
@@ -350,7 +352,9 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 	
 	//vector<double> maxlab(numk, 10 * 10);//THIS IS THE VARIABLE VALUE OF M, just start with 10
 	//最大亮度值，相当于控制亮度的权重， m越大，其权重越小，这里设置为定值？
-	vector<double> maxintensity(numk, 10*2);
+	//vector<double> maxintensity(numk, 10*2);
+	//Debug 20200519 add the compactness_factor
+	vector<double> maxintensity(numk, compactness_factor);
 
 	//vector<double> maxxy(numk, STEP*STEP);//THIS IS THE VARIABLE VALUE OF M, just start with 10
 	vector<double> maxxyz(numk, STEP*STEP*STEP);
