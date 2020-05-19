@@ -153,17 +153,17 @@ SPEEDf21.raw        //volume relative path
 Results for STEP 1:
 -----------------------------------------------------
 
-<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_xyplane.png" width=350>
+<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/design%20sketch_xyplane.png" width=350>
 
-<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_yzplane.png" width=350>
+<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/design%20sketch_yzplane.png" width=350>
 
-<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_volumerendering.png" width=350>
+<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/design%20sketch_volumerendering.png" width=350>
 
-<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_asteroid_tev.png" width=350>
+<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/design%20sketch_asteroid_tev.png" width=350>
 
-<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_MANIX.png" width=350>
+<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/design%20sketch_MANIX.png" width=350>
 
-<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_tooth.png" width=350>
+<img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/design%20sketch_tooth.png" width=350>
 
 
 <!-- ![xy plane](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/design%20sketch_xyplane.png)
@@ -180,8 +180,8 @@ Results for STEP 2 (jet_mixfrix_0051):
 
 <img src="https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph2.png" width=600> -->
 
-![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph.png)
-![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/master/image/super-voxel-graph2.png)
+![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/super-voxel-graph.png)
+![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/super-voxel-graph2.png)
 
 
 Results for STEP 3:
