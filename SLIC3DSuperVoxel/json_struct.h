@@ -20,6 +20,7 @@ struct FileNameJSONStruct : public vm::json::Serializable<FileNameJSONStruct>
 	VM_JSON_FIELD(std::string, edge_weight_file);
 	
 	VM_JSON_FIELD(std::string, graph_file);
+	VM_JSON_FIELD(std::string, node_embedding_file);
 };
 
 struct Volume2SuperVoxelJSONStruct : public vm::json::Serializable<Volume2SuperVoxelJSONStruct>
@@ -52,6 +53,15 @@ struct Histogram2GraphJSONStruct : public vm::json::Serializable<Histogram2Graph
 	VM_JSON_FIELD(int, histogram_size);
 };
 
+struct GCNJSONStruct : public vm::json::Serializable<GCNJSONStruct>
+{
+	VM_JSON_FIELD(int, vector_dimension);
+	VM_JSON_FIELD(int, epochs);
+	VM_JSON_FIELD(double, learning_rate);
+	VM_JSON_FIELD(int, warmup_steps);
+	VM_JSON_FIELD(int, label_type_number);
+};
+
 struct ConfigureJSONStruct : public vm::json::Serializable<ConfigureJSONStruct>
 {
 	VM_JSON_FIELD(DataPathJSONStruct, data_path);
@@ -59,4 +69,5 @@ struct ConfigureJSONStruct : public vm::json::Serializable<ConfigureJSONStruct>
 	VM_JSON_FIELD(Volume2SuperVoxelJSONStruct, volume2supervoxel);
 	VM_JSON_FIELD(SuperVoxel2HistogramJSONStruct, supervoxel2histogram);
 	VM_JSON_FIELD(Histogram2GraphJSONStruct, histogram2graph);
+	VM_JSON_FIELD(GCNJSONStruct, gcn);
 };

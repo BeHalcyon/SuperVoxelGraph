@@ -11,7 +11,7 @@ import numpy as np
 import pickle
 # 重点是rb和r的区别，rb是打开二进制文件，r是打开文本文件
 
-super_voxels_low_dimensional_vectors = pickle.load(open('node_embedding.pkl','rb'))
+super_voxels_low_dimensional_vectors = pickle.load(open('../VolumeGCN/node_embedding.emb','rb'))
 
 print(super_voxels_low_dimensional_vectors.shape)
 
@@ -21,7 +21,7 @@ if False:
     labels = db.labels_  #和X同一个维度，labels对应索引序号的值 为她所在簇的序号。若簇编号为-1，表示为噪声
 else:
     from sklearn.cluster import KMeans
-    db = KMeans(n_clusters=5).fit(super_voxels_low_dimensional_vectors)
+    db = KMeans(n_clusters=4).fit(super_voxels_low_dimensional_vectors)
     labels = db.labels_  # 和X同一个维度，labels对应索引序号的值 为她所在簇的序号。若簇编号为-1，表示为噪声
 
 print('每个样本的簇标号:')

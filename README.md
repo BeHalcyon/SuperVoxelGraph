@@ -119,7 +119,8 @@ SPEEDf21.raw        //volume relative path
       "gradient_file":"gradient_float.raw",// [0, +oo]
       "label_histogram_file":"label_histogram_array.txt",// 2D arrray, the row represensts all the Quantitative information of a super-voxel
       "edge_weight_file":"edge_weight_array.txt",//2D array that each row lists [i,j,w], representing super-voxel id i and j are neighboring and the weight between them is w
-      "graph_file":"supergraph.gexf"//the gephi file that stores the bulided graph
+      "graph_file":"supergraph.gexf",//the gephi file that stores the bulided graph
+      "node_embedding_file": "node_embedding.emb" //the training result in vecotor form.
     },
     
     "volume2supervoxel":{
@@ -144,9 +145,21 @@ SPEEDf21.raw        //volume relative path
     },
     "histogram2graph":{
       "histogram_size":256//Not yet in use
+    },
+    //The GCN is for unspervising learning and supervising learning.
+    //For the formmer, the only valid parameter is vector_dimension.
+    //For the latter, all the parameters in gcn are valid.
+    "gcn":{
+      "vector_dimension": 256, //The generated vector dimension.
+      "epochs": 100,  //The traning epochs
+      "learning_rate": 0.01,//The init learning rate
+      "warmup_steps": 100,//Warmup steps
+      "label_type_number": 1//The number of label types
     }
   }
 ```
+
+
 
 
 
