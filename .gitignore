@@ -12,6 +12,8 @@
 *.csv
 *.raw
 SuperVoxel2Graph_abort/
+*.emb
+*.npy
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
