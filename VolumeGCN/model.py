@@ -62,10 +62,9 @@ class Volume_GCN:
         xs_emb = tf.squeeze(tf.nn.embedding_lookup(h_2, xu))
         logits = tf.nn.sigmoid(tf.matmul(xs_emb, self.W))
 
-        pre = tf.py_func(predict_label, [logits], tf.int32)
+        pre = tf.py_func(predict_label, [logits], tf.float32)
         return pre
 
     def save_embeddings(self):
         flg = tf.py_func(save_emb, [self.h], tf.int32)
         return flg
-

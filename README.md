@@ -197,6 +197,10 @@ Results for STEP 2 (jet_mixfrix_0051):
 ![super-voxel graph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/super-voxel-graph2.png)
 
 
+![sphere volume render result](https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/supergraph_origin_volume.png)
+![sphere supergraph](https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/supergraph.png)
+![sphere supergraph subregion](https://github.com/XiangyangHe/SuperVoxelGraph/blob/develop/image/supergraph_subregion.png)
+
 Results for STEP 3:
 -----------------------------------------------------
 (A modification for distance measurement to achieve irregular super-voxels)

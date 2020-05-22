@@ -19,13 +19,13 @@ def parse_args():
     parser.add_argument('--configure_file', default='../x64/Release/workspace/spheres_supervoxel.json',
                         help='The configure json file for supergraph')
 
-    parser.add_argument('--dim', type=int, default=256,
-                        help='Number of dimensions. Default is 256  (0-255).')
-
-    parser.add_argument('--dataset', default='datasets/jet_mixfrac_0051_supervoxels.gexf',
-                        help='Name of dataset')
-    parser.add_argument('--node_num', type=int, default=None,
-                        help='Number of nodes.')
+    # parser.add_argument('--dim', type=int, default=256,
+    #                     help='Number of dimensions. Default is 256  (0-255).')
+    #
+    # parser.add_argument('--dataset', default='datasets/jet_mixfrac_0051_supervoxels.gexf',
+    #                     help='Name of dataset')
+    # parser.add_argument('--node_num', type=int, default=None,
+    #                     help='Number of nodes.')
     args = parser.parse_args()
 
     configure_json_file = args.configure_file
