@@ -47,6 +47,8 @@ def main():
     predict_label = m.predict(A, xu)
     dA, dxs, dys, dxu, dyu = train_data(hp, node_num, G, labeled_nodes)
 
+    print(dA)
+
     print("The model has been constructed. Starting to train...")
     # print("开始训练")
     with tf.Session() as sess:

@@ -1,7 +1,13 @@
 import argparse
+import json
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Volume-GCN")
+
+    # Debug 20200522 hxy : add configure_file
+
+    parser.add_argument('--configure_file', default='../x64/Release/workspace/spheres_supervoxel.json',
+                        help='configure json file')
 
     # training scheme
     parser.add_argument('--epochs', default=100, type=int)
@@ -29,4 +35,19 @@ def parse_args():
                         help='Number of nodes.')
 
     args = parser.parse_args()
+
+    configure_json_file = args.configure_file
+
+    f = open(configure_json_file)
+    json_content = json.load(f)
+    file_prefix = json_content["data_path"]["file_prefix"]
+    gexf_file = json_content["file_name"]["graph_file"]
+
+    args.dataset = file_prefix + gexf_file
+    args.dim = json_content['gcn']['vector_dimension']
+    args.node_embedding = file_prefix + json_content['file_name']['node_embedding_file']
+    args.lr = json_content['gcn']['learning_rate']
+    args.ratio = json_content['gcn']['ratio']
+    args.label = json_content['gcn']['label_type_number']
+
     return args

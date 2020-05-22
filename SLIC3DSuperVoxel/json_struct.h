@@ -21,6 +21,7 @@ struct FileNameJSONStruct : public vm::json::Serializable<FileNameJSONStruct>
 	
 	VM_JSON_FIELD(std::string, graph_file);
 	VM_JSON_FIELD(std::string, node_embedding_file);
+	VM_JSON_FIELD(std::string, labeled_graph_file);
 };
 
 struct Volume2SuperVoxelJSONStruct : public vm::json::Serializable<Volume2SuperVoxelJSONStruct>
@@ -60,6 +61,7 @@ struct GCNJSONStruct : public vm::json::Serializable<GCNJSONStruct>
 	VM_JSON_FIELD(double, learning_rate);
 	VM_JSON_FIELD(int, warmup_steps);
 	VM_JSON_FIELD(int, label_type_number);
+	VM_JSON_FIELD(double, ratio);
 };
 
 struct ConfigureJSONStruct : public vm::json::Serializable<ConfigureJSONStruct>

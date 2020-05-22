@@ -1,3 +1,4 @@
+
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
@@ -47,43 +48,35 @@ def histogramToGraph(json_file_name):
 
     return G, gexf_file
 
-import csv
-# 读取labeled文件
-def loadLabelId(csv_file_name):
-    labeled_data = []
-    with open(csv_file_name) as csvfile:
-        csv_reader = csv.reader(csvfile)  # 使用csv.reader读取csvfile中的文件
-        labeled_header = next(csv_reader)  # 读取第一行每一列的标题
-        for row in csv_reader:  # 将csv 文件中的数据保存到birth_data中
-            labeled_data.append(row[0])
-
-    labeled_data = [int(x) for x in labeled_data]  # 将数据从string形式转换为float形式
-    labeled_data = np.array(labeled_data)  # 将list数组转化成array数组便于查看数据结构
-    return labeled_data
-
-def addLabelForGraph(G, label_csv_file, label_id):
-    labeled_data = loadLabelId(label_csv_file)
-    # test_label_data = loadLabelId("labeled_test_outter_super_voxels.csv")
-    for x in labeled_data:
-        G.add_node(x, cls=label_id)
 
 def saveGraph(G, graph_file_name):
     nx.write_gexf(G, graph_file_name)
     print("SuperGraph has been saved.")
 
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Histogram to Graph")
+
+    parser.add_argument('--configure_file', default='../x64/Release/workspace/spheres_supervoxel.json',
+                        help='configure json file')
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == "__main__":
     start = time.clock()
+    hp = parse_args()
 
-    if len(sys.argv) == 1:
-        print("Please use command line parameter.")
-    else:
-        G, gexf_file_name = histogramToGraph(sys.argv[1])
+    print('Begin to transform the vector information to unlabeled graph...')
 
-        for i in range(2, len(sys.argv)):
-            if os.path.exists(sys.argv[i]):
-                addLabelForGraph(G, sys.argv[i], i-1)
+    G, gexf_file_name = histogramToGraph(hp.configure_file)
 
-        saveGraph(G, gexf_file_name)
+    # for i in range(2, len(sys.argv)):
+    #     if os.path.exists(sys.argv[i]):
+    #         addLabelForGraph(G, sys.argv[i], i-1)
+
+    saveGraph(G, gexf_file_name)
 
     elapsed = (time.clock() - start)
     print("Time for histogram2graph: ", elapsed, "s.")

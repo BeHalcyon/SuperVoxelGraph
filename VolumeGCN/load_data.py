@@ -9,9 +9,9 @@ def train_data(hp, node_num, G, labeled_nodes):
     xs = np.array(train_nodes)
     ys = np.ones((int(N*hp.ratio),))
     unlabeled_nodes = list(set(G.nodes())-set(labeled_nodes))
-
     xu = np.concatenate((np.array(unlabeled_nodes), np.array(test_nodes)))
     yu = np.concatenate((np.zeros(node_num-N,), np.ones(N-int(N*hp.ratio),)))
+
 
     for edge in G.edges():
         A[int(edge[0])][int(edge[1])] += 1
