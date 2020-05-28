@@ -76,6 +76,9 @@ if __name__ == "__main__":
     #     if os.path.exists(sys.argv[i]):
     #         addLabelForGraph(G, sys.argv[i], i-1)
 
+
+    # print(G.node[0])
+
     saveGraph(G, gexf_file_name)
 
     elapsed = (time.clock() - start)

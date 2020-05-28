@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#给图数据加标签
+# 给图数据加标签
 import networkx as nx
 import argparse
 import json
@@ -8,6 +8,8 @@ import os
 import time
 import csv
 import numpy as np
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Histogram to Graph")
 
@@ -22,6 +24,7 @@ def parse_args():
 def saveGraph(G, graph_file_name):
     nx.write_gexf(G, graph_file_name)
     print("Labeled SuperGraph has been saved.")
+
 
 # 读取labeled文件
 def loadLabelId(csv_file_name):
@@ -42,6 +45,8 @@ def addLabelForGraph(G, label_csv_file, label_id):
     # test_label_data = loadLabelId("labeled_test_outter_super_voxels.csv")
     for x in labeled_data:
         G.add_node(x, cls=label_id)
+
+
 if __name__ == "__main__":
     start = time.clock()
 

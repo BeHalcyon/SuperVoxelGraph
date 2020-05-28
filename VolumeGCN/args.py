@@ -10,7 +10,7 @@ def parse_args():
                         help='configure json file')
 
     # training scheme
-    parser.add_argument('--epochs', default=100, type=int)
+    parser.add_argument('--epochs', default=10, type=int)
     # parser.add_argument('--batch_size_con', default=10000, type=int)
     # parser.add_argument('--batch_size', default=5000, type=int)
     # parser.add_argument('--eval_size', default=3000, type=int)
@@ -21,6 +21,14 @@ def parse_args():
     # model
     parser.add_argument('--dim', type=int, default=256,
                         help='Number of dimensions. Default is 256  (0-255).')
+    parser.add_argument('--vec_dim', type=int, default=260,
+                        help='Length of node features. Default is 261.')
+    parser.add_argument('--hidden1', type=int, default=128,
+                        help='Dimension of hidden layer 1.')
+    parser.add_argument('--hidden2', type=int, default=64,
+                        help='Dimension of hidden layer 2.')
+    parser.add_argument('--dropout', type=float, default=0.5,
+                        help='Dropout.')
     parser.add_argument('--labeled_node', type=int, default=100,
                         help='Number of labeled nodes.')
     parser.add_argument('--ratio', type=float, default=0.8,
@@ -41,10 +49,12 @@ def parse_args():
     f = open(configure_json_file)
     json_content = json.load(f)
     file_prefix = json_content["data_path"]["file_prefix"]
-    gexf_file = json_content["file_name"]["graph_file"]
+    gexf_file = json_content["file_name"]["labeled_graph_file"]
 
     args.dataset = file_prefix + gexf_file
-    args.dim = json_content['gcn']['vector_dimension']
+    args.epochs = json_content['gcn']['epochs']
+    args.dim = json_content['gcn']['dimension']
+    args.vec_dim = json_content['gcn']['vector_dimension']
     args.node_embedding = file_prefix + json_content['file_name']['node_embedding_file']
     args.lr = json_content['gcn']['learning_rate']
     args.ratio = json_content['gcn']['ratio']
