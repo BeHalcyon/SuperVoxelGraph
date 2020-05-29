@@ -23,9 +23,13 @@ def parse_args():
                         help='Number of dimensions. Default is 256  (0-255).')
     parser.add_argument('--vec_dim', type=int, default=260,
                         help='Length of node features. Default is 261.')
+    # parser.add_argument('--hidden1', type=int, default=128,
+    #                     help='Dimension of hidden layer 1.')
+    # parser.add_argument('--hidden2', type=int, default=64,
+    #                     help='Dimension of hidden layer 2.')
     parser.add_argument('--hidden1', type=int, default=128,
                         help='Dimension of hidden layer 1.')
-    parser.add_argument('--hidden2', type=int, default=64,
+    parser.add_argument('--hidden2', type=int, default=32,
                         help='Dimension of hidden layer 2.')
     parser.add_argument('--dropout', type=float, default=0.5,
                         help='Dropout.')

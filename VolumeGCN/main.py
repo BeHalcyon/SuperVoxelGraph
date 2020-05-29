@@ -31,7 +31,9 @@ def main():
     # labeled_nodes = [[i, i%3] for i in range(300)]
     # labeled_nodes格式：[[node_id, node_cls],[],[],...]，node_id表示这个节点的新的id，node_cls表示类别
     labeled_nodes = []
+    all_nodes = []
     for n in range(node_num):
+        all_nodes.append(n)
         if G.node[str(n)]['cls'] != -1:
             labeled_nodes.append([n, G.node[str(n)]['cls']])
     random.shuffle(labeled_nodes) # 标签打散
@@ -54,46 +56,59 @@ def main():
     ys = tf.placeholder(dtype=tf.int32, shape=(int(hp.labeled_node * hp.ratio)), name='ys')
     # 测试集
     xu = tf.placeholder(dtype=tf.int32, shape=(hp.labeled_node - int(hp.labeled_node * hp.ratio)), name='xu')
+    # 全部测试集
+    xu_all = tf.placeholder(dtype=tf.int32, shape=(node_num), name='xu_all')
+
 
     loss, train_op, global_step = m.train(A, xs, ys)
+    tf.summary.scalar('loss', loss)
+
     predict_label = m.predict(A, xu)
+    predict_all_labels = m.predict(A, xu_all)
     dA, dxs, dys, dxu, dyu = train_data(hp, node_num, G, labeled_nodes)
 
-    # print(dA)
     print("The model has been constructed. Starting to train...")
-    # print("开始训练")
+
+    # 保存训练模型
+    saver = tf.train.Saver()  # 生成saver
+
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         _gs = sess.run(global_step)
+
+        from datetime import datetime
+        import os
+        cur_time = datetime.now().strftime("%Y%m%d%H%M%S")
+        dir = os.path.join('./tensorboard/', cur_time)
+        summary_writer = tf.summary.FileWriter(dir, graph=tf.get_default_graph())
+
+        merge_summary = tf.summary.merge_all()  # 整合所有summary op
+
         for i in tqdm(range(hp.epochs)):
-            _loss, _, _gs = sess.run([loss, train_op, global_step], feed_dict={A: dA, xs: dxs, ys: dys})
+            _loss, _, _gs, s = sess.run([loss, train_op, global_step, merge_summary], feed_dict={A: dA, xs: dxs, ys: dys})
+
             print("   Epoch : %02d   loss : %.2f" % (i+1, _loss))
 
+            summary_writer.add_summary(s, i)
 
-
-        # test_dxu = dxu.copy()
-        # test_dyu = dyu.copy()
-        # for i in range(test_dxu.shape[0]):
-        #     test_dxu[i] = test_dxu[i] - 2
-        #     test_dyu[i] = 1
-        #     if G.node[str(test_dxu[i])]['cls'] == -1:
-        #         test_dyu[i] = 0
-        #         print(test_dxu[i], G.node[str(test_dxu[i])]['cls'] )
-
-
-
-        # _pre = sess.run([predict_label], feed_dict={A:dA, xu:test_dxu})
-        # print("Test accuracy is : ", metrics.accuracy_score(test_dyu, _pre[0]))
         _pre = sess.run([predict_label], feed_dict={A: dA, xu: dxu})
-        print(dyu)
-        print(_pre[0])
+
         print("Fin accuracy is : ", metrics.accuracy_score(dyu, _pre[0]))
 
+        # 预测全部节点
+        _pre2 = sess.run([predict_all_labels], feed_dict={A: dA, xu_all: all_nodes})
+        print(_pre2[0])
+        import numpy as np
+        np.save('labeled.npy', np.array(_pre2[0]))
+
+        saver.save(sess, "model/"+cur_time)
 
 
         # print("Fin AUC score is : ", metrics.auc(dyu, _pre[0])) # tf不支持多分类，得另外写
     time_end = time.time()
     all_time = int(time_end - time_start)
+
+
 
     hours = int(all_time / 3600)
     minute = int((all_time - 3600 * hours) / 60)

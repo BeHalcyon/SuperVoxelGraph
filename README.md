@@ -57,7 +57,9 @@ Input informaiton:
 
 Output information:
 ```c
-*_supergraph.gexf: unlabeled graph file for the volume data.
+*_supergraph.gexf: unlabeled graph file for the volum
+
+e data.
 ```
 
 **Note: The nodes currently contain two attributes: histogram information [0, supervoxel2histogram.histogram_size+4], where [0, historam_size-1] are for the histogram inforamtion, [histogram_size ] is for the gradient, [histogram_size+1 ] is for the information entropy, [histogram_size+2, histogram_size+4] are for the coordinate of the barycenter) and cls (defaulted to -1, set to 1 for training set and 2 for test set).**
@@ -84,6 +86,8 @@ unspervise_GCN.py: training GCN for unlabeled graph.
 main.py: training GCN for labeled graph.
 ```
 All the above python files accept a configure json file as a command line paramter. The configure json format is at the bottom of this document.
+
+TODO: Remove the parameter "label_type_number" and "vector_dimension" in json file and update the json_struct.h and VolumeGCN interfaces.
 
 **STEP 5. Merging similar super-voxels using graph-based volume segmentation** (Not completed)
 

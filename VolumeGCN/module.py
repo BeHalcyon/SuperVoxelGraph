@@ -28,6 +28,9 @@ def node_classification(x, x_label, y, y_lable):
 def get_initialization(hp, G):
     # h_init = (np.random.randn(hp.node_num, hp.dim) / np.sqrt(hp.node_num/2)).astype('float32')
     f_init = np.zeros((hp.node_num, hp.vec_dim), dtype=np.float32)
+
+    print('The dimension of each node : {}'.format(hp.vec_dim))
+
     for n in range(hp.node_num):
         for i in range(hp.vec_dim):
             # print(n, i)
