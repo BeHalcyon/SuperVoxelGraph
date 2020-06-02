@@ -1,4 +1,10 @@
 
+Devlog 20200602
+1. Provide LabelSuperVoxelQt project for user to label the train set.
+2. Abort the using of gcn.label_type_number in json file.
+3. Extend the SLIC to generate more super-voxels.
+
+
 # SLIC3DSuperVoxel (SLIC algorithm for volume data in 3D space)
 
 Three works are achieved:
@@ -139,7 +145,8 @@ SPEEDf21.raw        //volume relative path
       "edge_weight_file":"edge_weight_array.txt",//2D array that each row lists [i,j,w], representing super-voxel id i and j are neighboring and the weight between them is w
       "graph_file":"supergraph.gexf",//the gephi file that stores the bulided graph (unlabeled)
       "node_embedding_file": "node_embedding.emb", //the training result in vecotor form (unsupervised)
-      "labeled_graph_file":"supergraph_labeled.gexf"//the gephi file that stores the bulided graph (labeled)
+      "labeled_graph_file":"supergraph_labeled.gexf",//the gephi file that stores the bulided graph (labeled)
+      "labeled_voxel_file": "voxels_labeled.csv" // the labeled voxel file from LabelSuperVoxelQt.exe
     },
     
     "volume2supervoxel":{
@@ -156,11 +163,11 @@ SPEEDf21.raw        //volume relative path
     },
 
     "supervoxel2histogram":{
-      "histogram_size":256,//The histogram length for each label
-      "is_histogram_stored":1,//Whether store the historam, default to set to 1 to store
-      "is_gradient_stored":1,//Whether store the non-normalized gradient
-      "is_entropy_stored":1,//Whether store the entropy
-      "is_barycenter_stored":1//Whether store the baycenter
+      "histogram_size":256,// The histogram length for each label
+      "is_histogram_stored":1,// Whether store the historam, default to set to 1 to store
+      "is_gradient_stored":1,// Whether store the non-normalized gradient
+      "is_entropy_stored":1,// Whether store the entropy
+      "is_barycenter_stored":1// Whether store the baycenter
     },
     "histogram2graph":{
       "histogram_size":256//Not yet in use

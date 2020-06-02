@@ -14,8 +14,9 @@ import math
 import time
 import random
 
+import os
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = ""
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 def main():
     time_start = time.time()
@@ -32,10 +33,13 @@ def main():
     # labeled_nodes格式：[[node_id, node_cls],[],[],...]，node_id表示这个节点的新的id，node_cls表示类别
     labeled_nodes = []
     all_nodes = []
+    label_set = set()
     for n in range(node_num):
         all_nodes.append(n)
         if G.node[str(n)]['cls'] != -1:
             labeled_nodes.append([n, G.node[str(n)]['cls']])
+            label_set.add(G.node[str(n)]['cls'])
+    hp.label = len(label_set)
     random.shuffle(labeled_nodes) # 标签打散
 
     print('Number of labeled nodes : ', len(labeled_nodes))

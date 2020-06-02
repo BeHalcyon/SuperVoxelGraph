@@ -22,6 +22,7 @@ struct FileNameJSONStruct : public vm::json::Serializable<FileNameJSONStruct>
 	VM_JSON_FIELD(std::string, graph_file);
 	VM_JSON_FIELD(std::string, node_embedding_file);
 	VM_JSON_FIELD(std::string, labeled_graph_file);
+	VM_JSON_FIELD(std::string, labeled_voxel_file);
 };
 
 struct Volume2SuperVoxelJSONStruct : public vm::json::Serializable<Volume2SuperVoxelJSONStruct>
@@ -42,11 +43,11 @@ struct Volume2SuperVoxelJSONStruct : public vm::json::Serializable<Volume2SuperV
 
 struct SuperVoxel2HistogramJSONStruct : public vm::json::Serializable<SuperVoxel2HistogramJSONStruct>
 {
-	VM_JSON_FIELD(int, histogram_size);
-	VM_JSON_FIELD(int, is_histogram_stored);
-	VM_JSON_FIELD(int, is_gradient_stored);
-	VM_JSON_FIELD(int, is_entropy_stored);
-	VM_JSON_FIELD(int, is_barycenter_stored);
+	VM_JSON_FIELD(int, histogram_size);			// the histogram size of each supervoxel
+	VM_JSON_FIELD(int, is_histogram_stored);	// Whether store the historam, default to set to 1 to store
+	VM_JSON_FIELD(int, is_gradient_stored);		// Whether store the non-normalized gradient
+	VM_JSON_FIELD(int, is_entropy_stored);		// Whether store the entropy
+	VM_JSON_FIELD(int, is_barycenter_stored);	// Whether store the baycenter
 };
 
 struct Histogram2GraphJSONStruct : public vm::json::Serializable<Histogram2GraphJSONStruct>

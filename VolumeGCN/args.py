@@ -27,9 +27,9 @@ def parse_args():
     #                     help='Dimension of hidden layer 1.')
     # parser.add_argument('--hidden2', type=int, default=64,
     #                     help='Dimension of hidden layer 2.')
-    parser.add_argument('--hidden1', type=int, default=128,
+    parser.add_argument('--hidden1', type=int, default=256,
                         help='Dimension of hidden layer 1.')
-    parser.add_argument('--hidden2', type=int, default=32,
+    parser.add_argument('--hidden2', type=int, default=128,
                         help='Dimension of hidden layer 2.')
     parser.add_argument('--dropout', type=float, default=0.5,
                         help='Dropout.')
@@ -62,6 +62,6 @@ def parse_args():
     args.node_embedding = file_prefix + json_content['file_name']['node_embedding_file']
     args.lr = json_content['gcn']['learning_rate']
     args.ratio = json_content['gcn']['ratio']
-    args.label = json_content['gcn']['label_type_number']
+    args.label = json_content['gcn']['label_type_number']  # abandon
 
     return args
