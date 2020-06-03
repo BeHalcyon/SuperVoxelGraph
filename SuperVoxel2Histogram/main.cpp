@@ -251,35 +251,89 @@ int main(int argc, char* argv[])
 		}
 
 		
-		//Normalize the histogram
-		for (auto i = 0; i < label_number; i++)
+		// Calculate the entropy
 		{
-			// auto buf_max_index = max_element(label_histogram_array[i].begin(), label_histogram_array[i].end());
-			float max_value = 0;
-			for (auto j : label_histogram_array[i])
+			for (auto i = 0; i < label_number; i++)
 			{
-				max_value = std::max(j, max_value);
-			}
+				float max_value = 0;
+				for (auto j : label_histogram_array[i])
+				{
+					max_value = std::max(j, max_value);
+				}
 
-			//if (*buf_max_index == 0) continue;
-			if (max_value == 0) continue;
-			for (auto& j : label_histogram_array[i])
-			{
-				j /= max_value;
-			}
+				//if (*buf_max_index == 0) continue;
+				//if (max_value == 0) continue;
+				//for (auto& j : label_histogram_array[i])
+				//{
+				//	j /= max_value;
+				//}
 
-			// Calculate the entropy
-			for (auto& j : label_histogram_array[i])
-			{
-				if (j == 0) continue;
-				// The information entropy is a negative number
-				label_entropy_array[i] -= j * log2(j);
+				for (auto& j : label_histogram_array[i])
+				{
+					if (j == 0) continue;
+					// The information entropy is a negative number
+					label_entropy_array[i] -= (j / max_value) * log2(j / max_value);
+				}
 			}
 		}
+		
+		// Update the histogram based the histogram_stored_type
+		{
+			auto histogram_stored_type = configure_json.supervoxel2histogram.histogram_stored_type;
+			if (histogram_stored_type == 1)
+			{
+				// Normalize
+				for (auto i = 0; i < label_number; i++)
+				{
+					float max_value = 0;
+					for (auto j : label_histogram_array[i])
+					{
+						max_value = std::max(j, max_value);
+					}
+
+					if (max_value == 0) continue;
+					for (auto& j : label_histogram_array[i])
+					{
+						j /= max_value;
+					}
+				}
+			}
+			// Update the histogram in log form and normalize.
+			else if (histogram_stored_type == 2)
+			{
+				for (auto i = 0; i < label_number; i++)
+				{
+					float max_value = 0;
+					for (auto j : label_histogram_array[i])
+					{
+						max_value = std::max(j, max_value);
+					}
+
+					if (max_value == 0 || max_value == 1) continue;
+					for (auto& j : label_histogram_array[i])
+					{
+						if (j == 0 || j == 1) continue;
+						j = log(j) / log(max_value);
+					}
+				}
+			}
+			// Update the histogram in one hot form.
+			else if (histogram_stored_type == 3)
+			{
+				for (auto i = 0; i < label_number; i++)
+				{
+					for (auto& j : label_histogram_array[i])
+					{
+						if (j > 1) j = 1;
+					}
+				}
+			}
+		}
+		
 
 		string calculated_information = "[ value histogram information";
-		// is_histogram_stored is default to set to 1 for calculation forever. But it can be set to 0 for filtering the date.
-		if(!configure_json.supervoxel2histogram.is_histogram_stored)
+		// is_histogram_stored is default to set to 1 for calculation forever. But it can be set to 0 for filtering the data.
+		if(!configure_json.supervoxel2histogram.histogram_stored_type)
 		{
 			label_histogram_array.clear();
 			calculated_information = "[ ";
@@ -319,6 +373,7 @@ int main(int argc, char* argv[])
 		}
 
 		calculated_information += " ]";
+
 
 		// 保存
 		saveLabelVector(label_histogram_array, file_prefix + configure_json.file_name.label_histogram_file);

@@ -44,7 +44,7 @@ struct Volume2SuperVoxelJSONStruct : public vm::json::Serializable<Volume2SuperV
 struct SuperVoxel2HistogramJSONStruct : public vm::json::Serializable<SuperVoxel2HistogramJSONStruct>
 {
 	VM_JSON_FIELD(int, histogram_size);			// the histogram size of each supervoxel
-	VM_JSON_FIELD(int, is_histogram_stored);	// Whether store the historam, default to set to 1 to store
+	VM_JSON_FIELD(int, histogram_stored_type);	// Whether store the historam, default to set to 1 to store origin histogram, 2 for log, 3 for one-hot
 	VM_JSON_FIELD(int, is_gradient_stored);		// Whether store the non-normalized gradient
 	VM_JSON_FIELD(int, is_entropy_stored);		// Whether store the entropy
 	VM_JSON_FIELD(int, is_barycenter_stored);	// Whether store the baycenter

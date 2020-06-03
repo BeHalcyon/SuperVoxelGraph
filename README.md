@@ -1,4 +1,7 @@
 
+Devlog 20200603
+1. Support multiple histogram calculation methods: origin normalization, log normalization, one hot.
+
 Devlog 20200602
 1. Provide LabelSuperVoxelQt project for user to label the train set.
 2. Abort the using of gcn.label_type_number in json file.
@@ -164,7 +167,7 @@ SPEEDf21.raw        //volume relative path
 
     "supervoxel2histogram":{
       "histogram_size":256,// The histogram length for each label
-      "is_histogram_stored":1,// Whether store the historam, default to set to 1 to store
+      "histogram_stored_type":1,// How to store the historam, default to set to 1 to store origin histogram. 2 to store the log histogram. 3 to store the one hot histogram 
       "is_gradient_stored":1,// Whether store the non-normalized gradient
       "is_entropy_stored":1,// Whether store the entropy
       "is_barycenter_stored":1// Whether store the baycenter
