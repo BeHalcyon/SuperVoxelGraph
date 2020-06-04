@@ -20,6 +20,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 def main():
     time_start = time.time()
+
     hp = parse_args()
     # print("开始读取数据")
 
@@ -73,10 +74,13 @@ def main():
 
     print("The model has been constructed. Starting to train...")
 
-    # 保存训练模型
-    saver = tf.train.Saver()  # 生成saver
+    # Save the training model
+    saver = tf.train.Saver()  # generate saver
 
-    with tf.Session() as sess:
+    config = tf.ConfigProto(allow_soft_placement=True)  # if the chosen device is not existed, tf can automatically distributes equipment
+    config.gpu_options.allow_growth = True  # allocate memory dynamically
+
+    with tf.Session(config=config) as sess:
         sess.run(tf.global_variables_initializer())
         _gs = sess.run(global_step)
 
@@ -92,6 +96,7 @@ def main():
             _loss, _, _gs, s = sess.run([loss, train_op, global_step, merge_summary], feed_dict={A: dA, xs: dxs, ys: dys})
 
             print("   Epoch : %02d   loss : %.2f" % (i+1, _loss))
+            print()
 
             summary_writer.add_summary(s, i)
 

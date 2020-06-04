@@ -32,6 +32,7 @@ bld/
 VolumeGCN/tensorboard/
 VolumeGCN/model/
 VolumeGCN/datasets/
+document/
 
 # Visual Studio 2015 cache/options directory
 .vs/

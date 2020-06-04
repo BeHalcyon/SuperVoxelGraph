@@ -1,11 +1,13 @@
 
-Devlog 20200603
-1. Support multiple histogram calculation methods: origin normalization, log normalization, one hot.
+# tested build configuration
+development platform: 
+Visual Studio 2019
+PyCharm 2020.1.1 Professional Edition
 
-Devlog 20200602
-1. Provide LabelSuperVoxelQt project for user to label the train set.
-2. Abort the using of gcn.label_type_number in json file.
-3. Extend the SLIC to generate more super-voxels.
+python lib:
+//tensorflow 1.14.0
+tensorflow-gpu  1.14.0
+tensorboard     2.2.2
 
 
 # SLIC3DSuperVoxel (SLIC algorithm for volume data in 3D space)

@@ -96,9 +96,9 @@ if __name__ == "__main__":
     semisupervise_result_file = '../VolumeGCN/labeled.npy'
     labels = np.load(semisupervise_result_file)
 
-    print(labels)
+
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)  # 获取分簇的数目
-    print(n_clusters_)
+    print("Number of labeled type : {}".format(n_clusters_))
 
     for i in range(-1, n_clusters_):
         buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)
