@@ -96,7 +96,6 @@ def main():
             _loss, _, _gs, s = sess.run([loss, train_op, global_step, merge_summary], feed_dict={A: dA, xs: dxs, ys: dys})
 
             print("   Epoch : %02d   loss : %.2f" % (i+1, _loss))
-            print()
 
             summary_writer.add_summary(s, i)
 
@@ -104,11 +103,15 @@ def main():
 
         print("Fin accuracy is : ", metrics.accuracy_score(dyu, _pre[0]))
 
-        # 预测全部节点
+        # predict all nodes.
         _pre2 = sess.run([predict_all_labels], feed_dict={A: dA, xu_all: all_nodes})
         print(_pre2[0])
+
         import numpy as np
-        np.save('labeled.npy', np.array(_pre2[0]))
+        ground_truth_array = np.load(hp.ground_truth_labeled_supervoxel_file)
+        print("All accuracy is : ", metrics.accuracy_score(ground_truth_array, _pre2[0]))
+
+        np.save(hp.predict_labeled_supervoxel_file, np.array(_pre2[0]))
 
         saver.save(sess, "model/"+cur_time)
 

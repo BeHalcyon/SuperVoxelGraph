@@ -63,5 +63,6 @@ def parse_args():
     args.lr = json_content['gcn']['learning_rate']
     args.ratio = json_content['gcn']['ratio']
     args.label = json_content['gcn']['label_type_number']  # abandon
-
+    args.ground_truth_labeled_supervoxel_file = file_prefix + json_content['file_name']['ground_truth_labeled_supervoxel_file']
+    args.predict_labeled_supervoxel_file = file_prefix + json_content['file_name']['predict_labeled_supervoxel_file']
     return args

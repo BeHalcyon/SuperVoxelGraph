@@ -23,7 +23,6 @@ struct VolumeGeneratorJSONStruct : public vm::json::Serializable<VolumeGenerator
 
 
 
-
 int main(int argc, char* argv[])
 {
 	if(argc<=1)
@@ -68,18 +67,21 @@ int main(int argc, char* argv[])
 			VolumeGenerator<unsigned char> volume_generator(dimension, space, volume_type);
 			for (auto& sphere : spheres) volume_generator.addSphere(sphere);
 			volume_generator.saveVolume(generator_path);
+			volume_generator.saveGroundTruthLabelVolume(generator_path);
 		}
 		else if(volume_type == "ushort")
 		{
 			VolumeGenerator<unsigned short> volume_generator(dimension, space, volume_type);
 			for (auto& sphere : spheres) volume_generator.addSphere(sphere);
 			volume_generator.saveVolume(generator_path);
+			volume_generator.saveGroundTruthLabelVolume(generator_path);
 		}
 		else if(volume_type == "float")
 		{
 			VolumeGenerator<float> volume_generator(dimension, space, volume_type);
 			for (auto& sphere : spheres) volume_generator.addSphere(sphere);
 			volume_generator.saveVolume(generator_path);
+			volume_generator.saveGroundTruthLabelVolume(generator_path);
 		}
 		else
 		{

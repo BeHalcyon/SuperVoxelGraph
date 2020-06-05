@@ -10,7 +10,7 @@ import time
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Histogram to Graph")
+    parser = argparse.ArgumentParser(description="Translate the predict result to segmented result.")
 
     parser.add_argument('--configure_file', default='../x64/Release/workspace/spheres_supervoxel.json',
                         help='configure json file')
