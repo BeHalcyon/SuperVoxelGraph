@@ -16,14 +16,22 @@ def emb_value_cos(x, y):
 
     return a_dev_b.reshape(1)
 
+
 def emb_value_weight_2(x, y):
     a_b = np.dot(x, y)
 
     return a_b.reshape(1)
 
-def node_classification(x, x_label, y, y_lable):
+# def node_classification(x, x_label, y, y_lable):
+#     cls = OneVsRestClassifier(svm.SVC(kernel='linear', random_state=np.random.RandomState(0)))
+#     cls.fit(x, x_label)
+
+
+def node_classification(x, x_label, y):
     cls = OneVsRestClassifier(svm.SVC(kernel='linear', random_state=np.random.RandomState(0)))
     cls.fit(x, x_label)
+    return cls.predict(y)
+
 
 def get_initialization(hp, G):
     # h_init = (np.random.randn(hp.node_num, hp.dim) / np.sqrt(hp.node_num/2)).astype('float32')

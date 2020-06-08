@@ -93,7 +93,8 @@ if __name__ == "__main__":
     label_int_data = readVolumeRaw(label_raw_file, 'int')
 
     # read semi-supervise file TODO: integrate the labeled file to json file.
-    semisupervise_result_file = '../VolumeGCN/labeled.npy'
+    # semisupervise_result_file = '../VolumeGCN/labeled.npy'
+    semisupervise_result_file = file_prefix + json_content['file_name']['predict_labeled_supervoxel_file']
     labels = np.load(semisupervise_result_file)
 
 

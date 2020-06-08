@@ -18,6 +18,21 @@ import os
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
+import random
+
+
+# 从列表中随机选取一定数目的元素
+def random_sample(num1, num2):
+    dataList = list(range(num1))  # 产生指定范围元素的列表
+    TrainIndex = []  # 初始化存储随机产生的索引的列表
+    num2 = num1 if num2 > num1 else num2
+    for i in range(num2):  # 随机产生索引的数量
+        randIndex = int(random.uniform(0, len(dataList)))  # 在指定的范围内产生随机数位置索引
+        TrainIndex.append(dataList[randIndex])  # 进行存储
+        del (dataList[randIndex])  # 对已选中的元素进行删除，以便于下一次随机选取
+    TestIndex = dataList  # 随机选取过后剩下的元素
+    return TrainIndex, TestIndex  # 返回随机选取的一定数目的元素，和剩下的元素
+
 def main():
     time_start = time.time()
 
@@ -32,16 +47,49 @@ def main():
     hp.node_num = node_num
     # labeled_nodes = [[i, i%3] for i in range(300)]
     # labeled_nodes格式：[[node_id, node_cls],[],[],...]，node_id表示这个节点的新的id，node_cls表示类别
+
     labeled_nodes = []
     all_nodes = []
     label_set = set()
-    for n in range(node_num):
-        all_nodes.append(n)
-        if G.node[str(n)]['cls'] != -1:
-            labeled_nodes.append([n, G.node[str(n)]['cls']])
-            label_set.add(G.node[str(n)]['cls'])
-    hp.label = len(label_set)
-    random.shuffle(labeled_nodes) # 标签打散
+
+    is_ground_truth_data_used = True
+
+    if not is_ground_truth_data_used:
+        for n in range(node_num):
+            all_nodes.append(n)
+            if G.node[str(n)]['cls'] != -1:
+                labeled_nodes.append([n, G.node[str(n)]['cls']])
+                label_set.add(G.node[str(n)]['cls'])
+        hp.label = len(label_set)
+        random.shuffle(labeled_nodes) # 标签打散
+    # Using ground truth training set
+    else:
+        import numpy as np
+        ground_truth_array = np.load(hp.ground_truth_labeled_supervoxel_file)
+        all_nodes_number = ground_truth_array.shape[0]
+
+        all_nodes = [n for n in range(node_num)]
+        train_set_number = int(all_nodes_number*0.1)
+
+        type_number = int(ground_truth_array.max()) + 1
+        # the number of train set for each type
+        train_set_number_for_each_type = train_set_number//type_number
+
+        for i in range(type_number):
+            buf_array = ground_truth_array[ground_truth_array == i]
+            buf_array_index = np.array(np.where(ground_truth_array == i)[0])
+            train_index_array, _ = random_sample(buf_array.shape[0], train_set_number_for_each_type)
+
+            for n in train_index_array:
+                labeled_nodes.append([buf_array_index[n], i])
+                label_set.add(i)
+        hp.label = len(label_set)
+        random.shuffle(labeled_nodes) # 标签打散
+
+        print(labeled_nodes)
+
+
+
 
     print('Number of labeled nodes : ', len(labeled_nodes))
 
