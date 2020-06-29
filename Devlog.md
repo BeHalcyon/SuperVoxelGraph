@@ -8,7 +8,10 @@ Devlog 20200629
 3. Implement the binary GCN model, and the results is not good than normal GCN.
 4. Several algorithm are implemented: svm, simple nural network, knn, random forest.
 5. The lower the histogram size and node number, the higher efficiency the model is. But it may cause a low model quality.
-6. Add metrics of precision, recall and f1 score to test set.(It should add cross validation set rather than test set?)
+6. Add metrics of precision, recall and f1 score (metricMeasure method in module.py) to test set.(It should add cross validation set rather than test set?)
+7. Add ground truth for spheres data set.
+8. Add niilabel2csv.py to transfer nii.gz file to labeled csv file.
+
 
 Devlog 20200608
 1. Test the histogram size of less then 256.
