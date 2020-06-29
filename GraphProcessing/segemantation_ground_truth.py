@@ -64,7 +64,7 @@ def readVolumeRaw(file_name, dtype='uchar'):
     if dtype == 'uchar':
         return np.fromfile(file_name, dtype=np.uint8)
     elif dtype == 'float':
-        return np.fromfile(file_name, dtype=np.float32)
+        return np.fromfile(file_name, dtype=np.float)
     elif dtype == 'ushort':
         return np.fromfile(file_name, dtype=np.uint16)
     elif dtype == 'int':
@@ -92,26 +92,24 @@ if __name__ == "__main__":
     # read label int file
     label_int_data = readVolumeRaw(label_raw_file, 'int')
 
-    # read semi-supervise file TODO: integrate the labeled file to json file.
-    # semisupervise_result_file = '../VolumeGCN/labeled.npy'
-    semisupervise_result_file = file_prefix + json_content['file_name']['predict_labeled_supervoxel_file']
-    labels = np.load(semisupervise_result_file)
+    ground_truth_result_file = file_prefix + json_content['file_name']['ground_truth_labeled_supervoxel_file']
+
+    labels = np.load(ground_truth_result_file)
 
 
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)  # 获取分簇的数目
     print("Number of labeled type : {}".format(n_clusters_))
-    print("Max labeled type id : {}".format(max(set(labels))))
 
-    for i in range(0, max(set(labels))+1):
+    for i in range(-1, n_clusters_):
         buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)
         buf_index_array = np.array(np.where(labels == i))
-        label_number = len(buf_index_array[0])
+        supervoxel_number = len(buf_index_array[0])
 
         for j in buf_index_array[0]:
             buf = np.where(label_int_data == j)
             # print(buf)
             buf_volume_array[buf] = volume_raw_data[buf]
-        if len(buf_index_array[0]) > 0:
+        if supervoxel_number > 0:
             buf_volume_array.tofile(
-                file_prefix + str(label_number) + '_part_' + str(i) + '.raw')
-            print("Cluster {} in {} has {} labels, and it has been saved.".format(i, n_clusters_, label_number))
+                file_prefix + 'ground_truth_' + str(supervoxel_number) + '_part_' + str(i) + '.raw')
+            print("Cluster {} in {} has {} labels, and it has been saved.".format(i, n_clusters_, supervoxel_number))

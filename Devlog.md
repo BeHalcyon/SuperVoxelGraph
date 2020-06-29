@@ -2,6 +2,14 @@ Question:
 1. Maybe the information entropy is not necessaray for training? The generated supervoxels have similar information for the reason that the voxels are highly consistent in the supervoxel.
 2. It's a huge difference between the origin gradient values,  so the gradient can be normalized ?
 
+Devlog 20200629
+1. Use ITK-SNAP to label data.
+2. Find the law: the more nodes, the greater results can be achieved; the histogram size=64 may be a good choice.
+3. Implement the binary GCN model, and the results is not good than normal GCN.
+4. Several algorithm are implemented: svm, simple nural network, knn, random forest.
+5. The lower the histogram size and node number, the higher efficiency the model is. But it may cause a low model quality.
+6. Add metrics of precision, recall and f1 score to test set.(It should add cross validation set rather than test set?)
+
 Devlog 20200608
 1. Test the histogram size of less then 256.
 2. The log histogram is used in further exploration.

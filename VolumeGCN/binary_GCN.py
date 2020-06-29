@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # /usr/bin/python3
 import sys
+
 sys.path.append("/")
 import tensorflow as tf
 from model import Volume_GCN
 from tqdm import tqdm
-from module import Graphs, metricMeasure
+from module import Graphs
 from load_data import train_data
 from sklearn import metrics
 from args import parse_args
@@ -34,6 +35,7 @@ def random_sample(num1, num2):
 
 def main():
     time_start = time.time()
+
     hp = parse_args()
     # print("开始读取数据")
 
@@ -50,45 +52,22 @@ def main():
     all_nodes = []
     label_set = set()
 
-    is_ground_truth_data_used = False
+    binary_classification_id = 2
+    for n in range(node_num):
+        all_nodes.append(n)
 
-
-    if not is_ground_truth_data_used:
-        for n in range(node_num):
-            all_nodes.append(n)
-            if G.node[str(n)]['cls'] != -1:
-                labeled_nodes.append([n, G.node[str(n)]['cls']])
-                label_set.add(G.node[str(n)]['cls'])
-        hp.label = len(label_set)
-        random.shuffle(labeled_nodes)  # 标签打散
-        # labeled_nodes = labeled_nodes[:2000]
-    # Using ground truth training set
-    else:
-        import numpy as np
-        ground_truth_array = np.load(hp.ground_truth_labeled_supervoxel_file)
-        all_nodes_number = ground_truth_array.shape[0]
-
-        all_nodes = [n for n in range(node_num)]
-        train_set_number = int(all_nodes_number*0.2)
-
-        type_number = int(ground_truth_array.max()) + 1
-        # the number of train set for each type
-        train_set_number_for_each_type = train_set_number//type_number
-
-        for i in range(type_number):
-            buf_array = ground_truth_array[ground_truth_array == i]
-            buf_array_index = np.array(np.where(ground_truth_array == i)[0])
-            train_index_array, _ = random_sample(buf_array.shape[0], train_set_number_for_each_type)
-
-            for n in train_index_array:
-                labeled_nodes.append([buf_array_index[n], i])
-                label_set.add(i)
-        hp.label = len(label_set)
-        random.shuffle(labeled_nodes) # 标签打散
-
-        # print(labeled_nodes)
+        if G.node[str(n)]['cls'] != -1:
+            if G.node[str(n)]['cls'] == binary_classification_id:
+                labeled_nodes.append([n, 1])
+                label_set.add(1)
+            else:
+                labeled_nodes.append([n, 0])
+                label_set.add(0)
+    hp.label = len(label_set)
+    random.shuffle(labeled_nodes)  # 标签打散
 
     hp.labeled_node = len(labeled_nodes)
+
     print('Number of all nodes : ', hp.node_num)
     print('Number of labeled nodes : ', hp.labeled_node)
     print('Number of trained labeled nodes : ', int(hp.labeled_node * hp.ratio))
@@ -119,6 +98,7 @@ def main():
 
     predict_label = m.predict(A, xu)
 
+
     predict_all_labels = m.predict(A, xu_all)
 
     dA, dxs, dys, dxu, dyu = train_data(hp, node_num, G, labeled_nodes)
@@ -146,44 +126,28 @@ def main():
         for i in tqdm(range(hp.epochs)):
             _loss, _, _gs, s = sess.run([loss, train_op, global_step, merge_summary], feed_dict={A: dA, xs: dxs, ys: dys})
 
-            print("   Epoch : %02d   loss : %.4f" % (i+1, _loss))
+            print("   Epoch : %02d   loss : %.2f" % (i+1, _loss))
 
             summary_writer.add_summary(s, i)
 
         _pre = sess.run([predict_label], feed_dict={A: dA, xu: dxu})
 
         print("Fin accuracy is : ", metrics.accuracy_score(dyu, _pre[0]))
-        print("predict_result : ")
-        print(_pre[0])
-        print("truth_result : ")
-        print(dyu)
 
-        precision_sorce, recall_score, f1_score = metricMeasure(dyu, _pre[0])
-        print("precision score : {}".format(precision_sorce))
-        print("recall score : {}".format(recall_score))
-        print("f1 score : {}".format(f1_score))
-
-        # # predict all nodes.
-        # _pre2 = sess.run([predict_all_labels], feed_dict={A: dA, xu_all: all_nodes})
-        # print(_pre2[0])
 
         import numpy as np
 
-        # predict model for multiple types of nodes.
-        # predict all nodes.
         _pre2 = sess.run([predict_all_labels], feed_dict={A: dA, xu_all: all_nodes})
-        print("All predict result : ")
-        print(_pre2[0])
-        np.save(hp.predict_labeled_supervoxel_file, np.array(_pre2[0]))
 
-        if is_ground_truth_data_used:
-            ground_truth_array = np.load(hp.ground_truth_labeled_supervoxel_file)
-            print("All accuracy is : ", metrics.accuracy_score(ground_truth_array, _pre2[0]))
+        print(_pre2[0])
+        for i in range(len(_pre2[0])):
+            _pre2[0][i] = binary_classification_id if _pre2[0][i] > 0 else -1
+        print(_pre2[0])
+        print()
+        np.save(hp.predict_labeled_supervoxel_file, np.array(_pre2[0]))
 
         saver.save(sess, "model/"+cur_time)
 
-
-        # print("Fin AUC score is : ", metrics.auc(dyu, _pre[0])) # tf不支持多分类，得另外写
     time_end = time.time()
     all_time = int(time_end - time_start)
 

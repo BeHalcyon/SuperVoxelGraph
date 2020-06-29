@@ -18,7 +18,7 @@ def parse_args():
 
     parser.add_argument('--type', type=int, default=1,
                         help='1 for only one csv file and the second column is available. 2 for '
-                             'multiple csv file and the second column is not available.')
+                             'multiple csv file and the second column is not available. 0 for only one csv file labeled by itk SNAP. ')
 
     parser.add_argument('--csv_file', nargs='*', help='csv file export by gephi')
 
@@ -75,8 +75,19 @@ def addLabelForGraph(G, label_csv_file, labeled_volume_file_name: str):
     # update the node type.
     for key, value in labeled_supervoxel_dict.items():
         G.add_node(key, cls=str(value))
+    # count the number
+    ls = list(labeled_supervoxel_dict.values())
+    for i in range(label_type_number):
+        print("Type id : {} --- Supervoxel Number : {}".format(i, ls.count(i)))
 
     return label_type_number
+
+# label graph for only one npy file
+# def addLabelForGraph(G, label_npy_file, labeled_volume_file_name: str):
+#
+#
+#
+#     return label_type_number
 
 if __name__ == "__main__":
     start = time.clock()
@@ -100,7 +111,23 @@ if __name__ == "__main__":
         if os.path.exists(labeled_voxel_file):
             label_type_number = addLabelForGraph(G, labeled_voxel_file, labeled_int_volume_file)
             print('The number of labeled type: {}'.format(label_type_number))
-
+    elif hp.type == 0:
+        print('Loading combined csv labeled file from itk SNAP tool...')
+        itk_snap_labeled_voxel_file = file_prefix + json_content["file_name"]["itk_snap_labeled_voxel_file"]
+        labeled_int_volume_file = file_prefix + json_content["file_name"]["label_file"]
+        if os.path.exists(itk_snap_labeled_voxel_file):
+            label_type_number = addLabelForGraph(G, itk_snap_labeled_voxel_file, labeled_int_volume_file)
+            print('The number of labeled type: {}'.format(label_type_number))
+    elif hp.type == 2:
+        print('Loading ground_truth npy labeled file...')
+        ground_truth_labeled_supervoxel_file = file_prefix + json_content["file_name"]["ground_truth_labeled_supervoxel_file"]
+        # labeled_int_volume_file = file_prefix + json_content["file_name"]["label_file"]
+        if os.path.exists(ground_truth_labeled_supervoxel_file):
+            # load ground truth npy file
+            labeled_id = np.load(ground_truth_labeled_supervoxel_file)
+            for i in range(labeled_id.shape[0]):
+                G.add_node(i, cls=str(labeled_id[i]))
+            print('The number of labeled type: {}'.format(len(set(labeled_id))))
     else:
         print('Loading separated csv labeled file...')
         for i in range(len(hp.csv_file)):

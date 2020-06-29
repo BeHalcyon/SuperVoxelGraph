@@ -82,6 +82,20 @@ class Volume_GCN:
         pre = tf.argmax(logits, 1)
         return pre
 
+    # binary classification prediction
+    def binaryPredict(self, A, xu):
+        h_1 = tf.matmul(A, self.f)
+        h_1 = tf.layers.dense(h_1, self.hp.hidden1, activation=tf.nn.relu, name="hidden_layer_1", reuse=tf.AUTO_REUSE)
+
+        h_2 = tf.matmul(A, h_1)
+        h_2 = tf.layers.dense(h_2, self.hp.hidden2, activation=tf.nn.relu, name="hidden_layer_2", reuse=tf.AUTO_REUSE)
+
+        xs_emb = tf.squeeze(tf.nn.embedding_lookup(h_2, xu))
+        logits = tf.layers.dense(xs_emb, self.hp.label, activation=tf.nn.sigmoid, name="classifer", reuse=tf.AUTO_REUSE)
+
+        # pre = tf.argmax(logits, 1)
+        return logits
+
     def save_embeddings(self):
         flg = tf.py_func(save_emb, [self.h], tf.int32)
         return flg

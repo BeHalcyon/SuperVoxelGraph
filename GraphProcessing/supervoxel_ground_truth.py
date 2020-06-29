@@ -63,25 +63,20 @@ if __name__ == "__main__":
 
     # create a numpy array to store the supervoxel ids and their type
     # labeled_supervoxel_dict = {}
-    labeled_supervoxel_array = np.zeros(shape=max(label_int_data)+1)
+    labeled_supervoxel_array = np.zeros(shape=max(label_int_data)+1, dtype=np.int)
 
     print('Number of supervoxels(nodes) : {}'.format(labeled_supervoxel_array.shape[0]))
 
     # update the numpy array
     for i in range(label_int_data.shape[0]):
         # labeled_supervoxel_dict[label_int_data[i]] = ground_truth_voxel_data[i]
-        labeled_supervoxel_array[label_int_data[i]] = ground_truth_voxel_data[i]
 
-    # import pandas as pd
-    # data_frame = pd.DataFrame(list(labeled_supervoxel_dict.items()))
+        if labeled_supervoxel_array[label_int_data[i]] == 0:
+            labeled_supervoxel_array[label_int_data[i]] = ground_truth_voxel_data[i]
 
-
-    # data_frame.columns = ['LabelID', 'clustID']
-    # print(data_frame)
-    # data_frame.to_csv(file_prefix+json_content['file_name']['ground_truth_labeled_voxel_file'], index=False)
+    # save the ground truth file
     np.save(file_prefix+json_content['file_name']['ground_truth_labeled_supervoxel_file'], labeled_supervoxel_array)
     # labeled_supervoxel_array.tofile(file_prefix+json_content['file_name']['ground_truth_labeled_supervoxel_file'])
-    # save the ground truth file
 
     elapsed = (time.clock() - start)
     print("Time for calculating the ground truth supervoxel graph: ", elapsed, "s.")
