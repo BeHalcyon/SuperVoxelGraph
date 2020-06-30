@@ -61,6 +61,22 @@ def main():
     train_data, test_data, train_label, test_label = train_test_split(x, y, random_state=1, train_size=hp.ratio,
                                                                       test_size=1 - hp.ratio)  # sklearn.model_selection.
 
+    predict_result = svmModel(f_init, train_data, test_label, test_data, train_label)
+    np.save(hp.predict_labeled_supervoxel_file, np.array(predict_result))
+
+
+    print('The predict labeled supervoxel file trained by svm has been save in : {}'.
+          format(hp.predict_labeled_supervoxel_file))
+
+    time_end = time.time()
+    all_time = int(time_end - time_start)
+
+    hours = int(all_time / 3600)
+    minute = int((all_time - 3600 * hours) / 60)
+    print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+
+
+def svmModel(f_init, train_data, test_label, test_data, train_label):
     # 3. train svm
     C = 1
     gamma = 0.03
@@ -77,39 +93,24 @@ def main():
     #             gamma = parameter_ls[j]
     #             max_acc = acc
     #             print('Update C to {} and gamma to {}. Current accurate: {}.'.format(C, gamma, acc))
-
     classifier = svm.SVC(C=C, kernel='rbf', gamma=gamma, decision_function_shape='ovr')  # ovr:一对多策略
     classifier.fit(train_data, train_label.ravel())  # ravel函数在降维时默认是行序优先
-
     # 4.计算svc分类器的准确率
     # print("交叉验证：", cross_val_score(classifier, train_data, train_label))
     print("训练集：", classifier.score(train_data, train_label))
     print("测试集：", classifier.score(test_data, test_label))
-
     # 查看决策函数
     # print('train_decision_function:\n', classifier.decision_function(train_data))  # (90,3)
     predict_result = classifier.predict(test_data)
     print('predict_result:\n', predict_result)
     print('true_result:\n', test_label)
-
     precision_sorce, recall_score, f1_score = metricMeasure(test_label, predict_result)
     print("precision score : {}".format(precision_sorce))
     print("recall score : {}".format(recall_score))
     print("f1 score : {}".format(f1_score))
-
     # predict all results
     predict_result = classifier.predict(f_init)
-    np.save(hp.predict_labeled_supervoxel_file, np.array(predict_result))
-
-    print('The predict labeled supervoxel file trained by svm has been save in : {}'.
-          format(hp.predict_labeled_supervoxel_file))
-
-    time_end = time.time()
-    all_time = int(time_end - time_start)
-
-    hours = int(all_time / 3600)
-    minute = int((all_time - 3600 * hours) / 60)
-    print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+    return predict_result
 
 
 if __name__ == '__main__':

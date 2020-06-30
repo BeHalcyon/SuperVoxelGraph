@@ -44,8 +44,6 @@ def get_initialization(hp, G):
             # print(n, i)
             f_init[n][i] = G.node[str(n)][str(i)]
 
-
-
     # w1_init = (np.random.randn(hp.dim, hp.hidden1) / np.sqrt(hp.dim/2)).astype('float32')
     # w2_init = (np.random.randn(hp.hidden1, hp.dim) / np.sqrt(hp.dim / 2)).astype('float32')
     # W_init = (np.random.randn(hp.dim, hp.label) / np.sqrt(hp.dim/2)).astype('float32')

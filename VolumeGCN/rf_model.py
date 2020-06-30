@@ -63,39 +63,7 @@ def main():
     print(train_data.shape)
     print(train_label.shape)
 
-    # 随机森林
-    clf = RandomForestClassifier(n_estimators=40, max_features=0.1, criterion='entropy', max_depth=None, min_samples_split=2,
-                                  random_state=0)
-
-    cross_val_scores = cross_val_score(clf, train_data, train_label)
-    print("Cross value score for tree number={} and feature number={} is : {}".
-          format(40, 0.1, cross_val_scores.mean()))
-    # iris_data = load_iris()
-    # train_data = iris_data.data
-    # train_label = iris_data.target
-
-    # parameterSelect(train_data, train_label)
-
-    clf.fit(train_data, train_label)
-    train_score = clf.score(train_data, train_label)
-    test_score = clf.score(test_data, test_label)
-    print("Train acc : {}".format(train_score))
-    print("Test acc : {}".format(test_score))
-
-    print("predict_result : ")
-    predictions = clf.predict(test_data)
-    print(predictions)
-
-    print("truth_result : ")
-    print(test_label)
-
-    precision_sorce, recall_score, f1_score = metricMeasure(test_label, predictions)
-    print("precision score : {}".format(precision_sorce))
-    print("recall score : {}".format(recall_score))
-    print("f1 score : {}".format(f1_score))
-
-    print("All predict result : ")
-    predictions = clf.predict(f_init)
+    predictions = rfModel(f_init, train_data, train_label, test_data, test_label)
     print(predictions)
 
     np.save(hp.predict_labeled_supervoxel_file, np.array(predictions))
@@ -106,6 +74,38 @@ def main():
     minute = int((all_time - 3600 * hours) / 60)
     print()
     print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+
+
+def rfModel(f_init, train_data, train_label, test_data, test_label):
+    # 随机森林
+    clf = RandomForestClassifier(n_estimators=40, max_features=0.1, criterion='entropy', max_depth=None,
+                                 min_samples_split=2,
+                                 random_state=0)
+    cross_val_scores = cross_val_score(clf, train_data, train_label)
+    print("Cross value score for tree number={} and feature number={} is : {}".
+          format(40, 0.1, cross_val_scores.mean()))
+    # iris_data = load_iris()
+    # train_data = iris_data.data
+    # train_label = iris_data.target
+    # parameterSelect(train_data, train_label)
+    clf.fit(train_data, train_label)
+    train_score = clf.score(train_data, train_label)
+    test_score = clf.score(test_data, test_label)
+    print("Train acc : {}".format(train_score))
+    print("Test acc : {}".format(test_score))
+    print("predict_result : ")
+    predictions = clf.predict(test_data)
+    print(predictions)
+    print("truth_result : ")
+    print(test_label)
+    precision_sorce, recall_score, f1_score = metricMeasure(test_label, predictions)
+    print("precision score : {}".format(precision_sorce))
+    print("recall score : {}".format(recall_score))
+    print("f1 score : {}".format(f1_score))
+    print("All predict result : ")
+    predictions = clf.predict(f_init)
+    return predictions
+
 
 def parameterSelect(train_data, train_label):
     for i in range(1, 100, 3):

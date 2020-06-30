@@ -71,54 +71,7 @@ def main():
     print(train_label.shape)
     # print(test_label.shape)
 
-    y_train_onehot = np_utils.to_categorical(train_label)
-    # y_test_onehot = np_utils.to_categorical(test_label)
-
-    # 声明序贯模型
-    model = Sequential()
-
-    model.add(Dense(units=hp.hidden1,
-                    input_dim=hp.vec_dim,
-                    kernel_initializer='normal',
-                    activation='relu'))
-
-    model.add(Dense(units=hp.hidden2,
-                    kernel_initializer='normal',
-                    activation='relu'))
-
-    model.add(Dense(units=hp.label,
-                    kernel_initializer='normal',
-                    activation='softmax'))
-
-    model.compile(loss='categorical_crossentropy',
-                optimizer='adam', metrics=['accuracy'])
-
-    train_history = model.fit(x=train_data,
-                          y=y_train_onehot,
-                          validation_split=1-hp.ratio,
-                          epochs=100,
-                          batch_size=10,
-                          verbose=2)
-
-    # train_data, test_data, train_label, test_label = train_test_split(x, y, random_state=1, train_size=hp.ratio,
-    #                                                 test_size=1-hp.ratio)  # sklearn.model_selection.
-
-    # 预测样本类别
-    predictions = model.predict_classes(train_data)
-
-    print("predict_result : ")
-    print(predictions)
-    print("truth_result : ")
-    print(train_label)
-
-    precision_sorce, recall_score, f1_score = metricMeasure(train_label, predictions)
-    print("precision score : {}".format(precision_sorce))
-    print("recall score : {}".format(recall_score))
-    print("f1 score : {}".format(f1_score))
-
-    print("All predict result : ")
-    predictions = model.predict_classes(f_init)
-    print(predictions)
+    predictions = nnModel(hp, f_init, train_data, train_label)
 
     np.save(hp.predict_labeled_supervoxel_file, np.array(predictions))
 
@@ -129,6 +82,47 @@ def main():
     minute = int((all_time - 3600 * hours) / 60)
     print()
     print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+
+
+def nnModel(hp, f_init, train_data, train_label):
+    y_train_onehot = np_utils.to_categorical(train_label)
+    # y_test_onehot = np_utils.to_categorical(test_label)
+    # 声明序贯模型
+    model = Sequential()
+    model.add(Dense(units=hp.hidden1,
+                    input_dim=hp.vec_dim,
+                    kernel_initializer='normal',
+                    activation='relu'))
+    model.add(Dense(units=hp.hidden2,
+                    kernel_initializer='normal',
+                    activation='relu'))
+    model.add(Dense(units=hp.label,
+                    kernel_initializer='normal',
+                    activation='softmax'))
+    model.compile(loss='categorical_crossentropy',
+                  optimizer='adam', metrics=['accuracy'])
+    train_history = model.fit(x=train_data,
+                              y=y_train_onehot,
+                              validation_split=1 - hp.ratio,
+                              epochs=100,
+                              batch_size=10,
+                              verbose=2)
+    # train_data, test_data, train_label, test_label = train_test_split(x, y, random_state=1, train_size=hp.ratio,
+    #                                                 test_size=1-hp.ratio)  # sklearn.model_selection.
+    # 预测样本类别
+    predictions = model.predict_classes(train_data)
+    print("predict_result : ")
+    print(predictions)
+    print("truth_result : ")
+    print(train_label)
+    precision_sorce, recall_score, f1_score = metricMeasure(train_label, predictions)
+    print("precision score : {}".format(precision_sorce))
+    print("recall score : {}".format(recall_score))
+    print("f1 score : {}".format(f1_score))
+    print("All predict result : ")
+    predictions = model.predict_classes(f_init)
+    print(predictions)
+    return predictions
 
 
 if __name__ == '__main__':

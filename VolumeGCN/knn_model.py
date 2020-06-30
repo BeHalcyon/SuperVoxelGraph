@@ -51,6 +51,7 @@ def main():
 
     train_data, test_data, train_label, test_label = train_test_split(x, y, random_state=1, train_size=hp.ratio,
                                                                       test_size=1-hp.ratio)  # sklearn.model_selection.
+    # TODO : Test the model ?
     train_data = np.array(x)
     train_label = np.array(y)
 
@@ -61,24 +62,7 @@ def main():
 
     # parameterSelect(test_data, test_label, train_data, train_label)
 
-    knn = KNeighborsClassifier(1, p=2)
-    knn.fit(train_data, train_label)
-    a = knn.score(train_data, train_label)
-    b = knn.score(test_data, test_label)
-    print("predict_result : ")
-    predictions = knn.predict(test_data)
-    print(predictions)
-    print("truth_result : ")
-    print(test_label)
-
-    precision_sorce, recall_score, f1_score = metricMeasure(test_label, predictions)
-    print("precision score : {}".format(precision_sorce))
-    print("recall score : {}".format(recall_score))
-    print("f1 score : {}".format(f1_score))
-
-    print("All predict result : ")
-    predictions2 = knn.predict(f_init)
-    print(predictions2)
+    predictions2 = knnModel(f_init, train_data, train_label, test_data, test_label)
 
     np.save(hp.predict_labeled_supervoxel_file, np.array(predictions2))
 
@@ -90,6 +74,26 @@ def main():
     minute = int((all_time - 3600 * hours) / 60)
     print()
     print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+
+
+def knnModel(f_init, train_data, train_label, test_data, test_label):
+    knn = KNeighborsClassifier(1, p=2)
+    knn.fit(train_data, train_label)
+    a = knn.score(train_data, train_label)
+    b = knn.score(test_data, test_label)
+    print("predict_result : ")
+    predictions = knn.predict(test_data)
+    print(predictions)
+    print("truth_result : ")
+    print(test_label)
+    precision_sorce, recall_score, f1_score = metricMeasure(test_label, predictions)
+    print("precision score : {}".format(precision_sorce))
+    print("recall score : {}".format(recall_score))
+    print("f1 score : {}".format(f1_score))
+    print("All predict result : ")
+    predictions2 = knn.predict(f_init)
+    print(predictions2)
+    return predictions2
 
 
 def parameterSelect(test_data, test_label, train_data, train_label):

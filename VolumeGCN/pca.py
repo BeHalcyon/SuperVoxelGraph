@@ -57,6 +57,17 @@ def main():
     print(pca.explained_variance_ratio_)
     print(pca.n_components_)
 
+
+
+
+
+
+
+
+
+
+
+
     time_end = time.time()
     all_time = int(time_end - time_start)
 

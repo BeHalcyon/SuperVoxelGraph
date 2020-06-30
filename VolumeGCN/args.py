@@ -65,4 +65,5 @@ def parse_args():
     args.label = json_content['gcn']['label_type_number']  # abandon
     args.ground_truth_labeled_supervoxel_file = file_prefix + json_content['file_name']['ground_truth_labeled_supervoxel_file']
     args.predict_labeled_supervoxel_file = file_prefix + json_content['file_name']['predict_labeled_supervoxel_file']
+    args.predict_labeled_voxel_file = file_prefix + json_content['file_name']['predict_labeled_voxel_file']
     return args
