@@ -5,8 +5,9 @@ Question:
 Devlog 20200630
 1. Add features (scalar value, gradient, up-down-left-right-front-back scalar value, position) for each voxels and realize the four supervised classification algorithms (knn, random forest, svm, simple nural network).
 2. Voxel-based algorithm can achieve more smooth results.
-3. TODO: Fix the bug that train_data is all the data of origin data set. It should be assigned with train_data and train_label
-4. TODO: Try the normalized histogram bins and add normalized gradient, position of each node.
+3. Add semisupervise_analysis_voxel.py to segment the volume based on voxel training process.
+4. TODO: Fix the bug that train_data is all the data of origin data set. It should be assigned with train_data and train_label
+5. TODO: Try the normalized histogram bins and add normalized gradient, position of each node.
 
 Devlog 20200629
 1. Add metrics of precision, recall and f1 score (metricMeasure method in module.py) to test set.(It should add cross validation set rather than test set?)
