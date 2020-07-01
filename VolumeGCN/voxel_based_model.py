@@ -47,7 +47,7 @@ def readVolumeRaw(file_name, dtype='uchar'):
         return np.fromfile(file_name, dtype=np.int)
 def main():
 
-    time_start = time.time()
+
 
     hp = parse_args()
     configure_json_file = hp.configure_file
@@ -166,23 +166,27 @@ def main():
     print(train_data.shape)
     print(train_label.shape)
 
-    type = 'rf'
+    type = ''
+    print('Input the training model in one of :[\'rf (random forest)\', \'nn (neural network)\', \'svm\', \'knn\']:')
     predictions = None
-    if type == 'rf':
-        predictions = rfModel(f_init, train_data, train_label, test_data, test_label)
-
-    elif type == 'nn':
-        hp.vec_dim = 11
-        predictions = nnModel(hp, f_init, train_data, train_label)
-
-    elif type == 'svm':
-        predictions = svmModel(f_init, train_data, test_label, test_data, train_label)
-
-    elif type == 'knn':
-        predictions = knnModel(f_init, train_data, train_label, test_data, test_label)
-
-    else:
-        print('No train model named {}'.format(type))
+    while True:
+        type = input()
+        time_start = time.time()
+        if type == 'rf':
+            predictions = rfModel(f_init, train_data, train_label, test_data, test_label)
+            break
+        elif type == 'nn':
+            hp.vec_dim = 11
+            predictions = nnModel(hp, f_init, train_data, train_label)
+            break
+        elif type == 'svm':
+            predictions = svmModel(f_init, train_data, test_label, test_data, train_label)
+            break
+        elif type == 'knn':
+            predictions = knnModel(f_init, train_data, train_label, test_data, test_label)
+            break
+        else:
+            print('No train model named {}. Please input again.'.format(type))
 
 
     print(predictions)

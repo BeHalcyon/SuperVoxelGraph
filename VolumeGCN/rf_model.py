@@ -57,8 +57,8 @@ def main():
 
     train_data, test_data, train_label, test_label = train_test_split(x, y, random_state=1, train_size=hp.ratio,
                                                                       test_size=1-hp.ratio)  # sklearn.model_selection.
-    train_data = np.array(x)
-    train_label = np.array(y)
+    # train_data = np.array(x)
+    # train_label = np.array(y)
 
     print(train_data.shape)
     print(train_label.shape)

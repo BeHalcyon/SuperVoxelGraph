@@ -7,14 +7,13 @@ import sys
 
 import os
 import time
-
+from sklearn import preprocessing
 
 def histogramToGraph(json_file_name):
     f = open(json_file_name)
     json_content = json.load(f)
     file_prefix = json_content["data_path"]["file_prefix"]
     labeled_histogram_file = json_content["file_name"]["label_histogram_file"]
-    # label_histogram_array = np.loadtxt("label_histogram_array.txt")  # 缺省按照'%.18e'格式保存数据，以空格分隔
     label_histogram_array = np.loadtxt(file_prefix + labeled_histogram_file)  # 缺省按照'%.18e'格式保存数据，以空格分隔
     label_number = label_histogram_array.shape[0]
 
@@ -23,6 +22,22 @@ def histogramToGraph(json_file_name):
     edge_array = np.loadtxt(file_prefix + edge_weight_file)
     print("label number: ", label_number)
     print("edge information: ", edge_array.shape)
+
+    # print(label_histogram_array[:, 127:])
+
+    # normalize feature
+    scalar = preprocessing.StandardScaler().fit(label_histogram_array)
+    # print(scaler.mean_)
+    # print(scaler.var_)
+    label_histogram_array = scalar.transform(label_histogram_array)
+    # print(f_init[:10])
+    # print(res[:10])
+    # print(label_histogram_array[:, 127:])
+    #
+    print('Node number : {} Feature number : {}'.format(label_histogram_array.shape[0],
+                                                        label_histogram_array.shape[1]))
+    # return
+
 
     G = nx.Graph()
 

@@ -2,11 +2,17 @@ Question:
 1. Maybe the information entropy is not necessaray for training? The generated supervoxels have similar information for the reason that the voxels are highly consistent in the supervoxel.
 2. It's a huge difference between the origin gradient values,  so the gradient can be normalized ?
 
+Devlog 20200701
+1. Try the normalized histogram bins and add normalized gradient, position of each node.
+2. TODO: the normalized histogram bins should be normalized by nodes rather than by features?
+3. TODO: the weight of scalar values should be bigger than that of distance/shape?
+4. TODO: the searching regiones should be set to a bigger values.
+
 Devlog 20200630
 1. Add features (scalar value, gradient, up-down-left-right-front-back scalar value, position) for each voxels and realize the four supervised classification algorithms (knn, random forest, svm, simple nural network).
 2. Voxel-based algorithm can achieve more smooth results.
 3. Add semisupervise_analysis_voxel.py to segment the volume based on voxel training process.
-4. TODO: Fix the bug that train_data is all the data of origin data set. It should be assigned with train_data and train_label
+4. Fix the bug that train_data is all the data of origin data set. It should be assigned with train_data and train_label
 5. TODO: Try the normalized histogram bins and add normalized gradient, position of each node.
 
 Devlog 20200629

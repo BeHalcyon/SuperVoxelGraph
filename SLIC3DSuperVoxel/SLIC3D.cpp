@@ -71,7 +71,7 @@ void SLIC3D::PerformSLICO_ForGivenK(
 	//获取对应的种子点，且将种子点扰乱
 	GetLABXYSeeds_ForGivenK(kseedintensity, kseedsx, kseedsy, kseedsz, K, perturbseeds, edgemag);
 
-	//步长太小的情况下，添加一个小的值
+	//步长太小的情况下，添加一个小的值。该步长指的是每个supervoxel的初始边长
 	int STEP = pow(double(sz) / double(K), 1.0/3) + 2.0;//adding a small value in the even the STEP size is too small.
 	//PerformSuperpixelSLIC(kseedsl, kseedsa, kseedsb, kseedsx, kseedsy, klabels, STEP, edgemag, m);
 	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 10, m);
@@ -141,7 +141,7 @@ void SLIC3D::PerformSLICO_ForGivenK(
 	//步长太小的情况下，添加一个小的值
 	int STEP = pow(double(sz) / double(K), 1.0 / 3) + 2.0;//adding a small value in the even the STEP size is too small.
 	//PerformSuperpixelSLIC(kseedsl, kseedsa, kseedsb, kseedsx, kseedsy, klabels, STEP, edgemag, m);
-	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 10, m);
+	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 50, m);
 	std::cout << "K-means clustering has been calculated." << std::endl;
 
 
@@ -370,6 +370,8 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 		//------
 
 		distvec.assign(sz, DBL_MAX);
+
+		// for each voxel, find the closest seed point and assign the label to the seed.
 		for (int n = 0; n < numk; n++)
 		{
 			int z1 = max(0.0, kseedsz[n] - offset);
@@ -463,7 +465,32 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 			}
 		}
 
-		std::cout << "Iteration " << numitr << "/" << NUMITR << " has been executed." << std::endl;
+		//Debug 20200701 calculate error
+
+		bool is_error_calcuated = true;
+
+		if(is_error_calcuated)
+		{
+			double error = 0;
+			for(int n=0;n<sz;n++)
+			{
+				int z = n / (m_height * m_width);
+				int x = n % m_width;
+				int y = (n % (m_height * m_width)) / m_width;
+				int label = klabels[n];
+				double dist_intensity = (m_volumevec[n] - kseedintensity[label]) * (m_volumevec[n] - kseedintensity[label]);
+				double dist_xyz = (z - kseedsz[label])* (z - kseedsz[label]) + (y - kseedsy[label]) * (y - kseedsy[label]) + (x - kseedsx[label]) * (x - kseedsx[label]);
+				double dist = dist_intensity / maxintensity[label] + dist_xyz * invxywt;//only varying m, prettier superpixels
+				error += dist;
+			}
+			error /= numk;
+			std::cout << "Error in Iteration " << numitr << "/" << NUMITR << " is : " <<error << std::endl;
+		}
+		else
+		{
+			std::cout << "Iteration " << numitr << "/" << NUMITR << " has been executed." << std::endl;
+		}
+		
 	}
 }
 
@@ -705,7 +732,7 @@ void SLIC3D::DrawContoursAroundSegments(
 						}
 					}
 				}
-				if (np > 5)//change to 3 or 5 for thinner lines
+				if (np > 7)//change to 3 or 5 for thinner lines
 				{
 					ubuff[main_index] = boundary_value;
 					is_taken[main_index] = true;

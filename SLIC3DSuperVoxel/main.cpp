@@ -353,6 +353,9 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 		double m = configure_json.volume2supervoxel.compactness_factor;//Compactness factor. use a value ranging from 10 to 40 depending on your needs. Default is 10
 		int* klabels = new int[dimension.x * dimension.y * dimension.z];
 		int num_labels(0);
+
+		std::cout << "Expected number of supervoxels : " << configure_json.volume2supervoxel.cluster_number << std::endl;
+		
 		SLIC3D slic_3d;
 		slic_3d.PerformSLICO_ForGivenK((*volume_data).data(), dimension.x, dimension.y, dimension.z, klabels, num_labels, k, m);
 
