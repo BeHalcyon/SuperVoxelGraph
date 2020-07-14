@@ -52,9 +52,13 @@ def histogramToGraph(json_file_name):
         #     if edge_array[i][j] > 0:
         #         G.add_edge(i, j)
     # Add the edge information
+
+    # Extension 20200709 add weight to edge
+
     for j in edge_array:
         if j[2] != 0:
-            G.add_edge(int(j[0]), int(j[1]))
+            G.add_edge(int(j[0]), int(j[1]), weight=1)
+            # G.add_edge(int(j[0]), int(j[1]))
 
 
     # print(G.node)

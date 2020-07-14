@@ -2,8 +2,21 @@ Question:
 1. Maybe the information entropy is not necessaray for training? The generated supervoxels have similar information for the reason that the voxels are highly consistent in the supervoxel.
 2. It's a huge difference between the origin gradient values,  so the gradient can be normalized ?
 
+Devlog 20200713
+1. Add semisupervise_nii.py and semisupervise_nii_voxel.py to replace semisupervise_analysis(_voxel).py
+2. Visulize segmented slice file (nii.gz) in ITK-SNAP tool.
+
+Devlog 20200709
+1. Add gradient difference as the weight of nodes in semigcn_with_weight.py. While the results seem to be no obvious improvement.
+2. Use only one scalar value as the scalar feature rather than the histogram, and the time doesn't seem to be going down.
+
+Devlog 20200702
+1. Test the different weight between scalar values and spatial distance. The weight setting to 0.6 may be a good choice.
+2. The searching regiones should not be set to a bigger values.
+
+
 Devlog 20200701
-1. Try the normalized histogram bins and add normalized gradient, position of each node.
+1. Try the normalized histogram bins and add normalized gradient, position of each node and get a greater f1 score.
 2. TODO: the normalized histogram bins should be normalized by nodes rather than by features?
 3. TODO: the weight of scalar values should be bigger than that of distance/shape?
 4. TODO: the searching regiones should be set to a bigger values.

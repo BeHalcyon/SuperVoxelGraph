@@ -6,15 +6,15 @@ import tensorflow as tf
 from model import Volume_GCN
 from tqdm import tqdm
 from module import Graphs, metricMeasure
-from load_data import train_data
+from load_data import train_data, train_data_with_weight
 from sklearn import metrics
 from args import parse_args
-import math
 import time
-import random
 
 import os
+from sklearn.decomposition import PCA
 
+sys.path.append("/")
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 import random
@@ -27,7 +27,7 @@ def random_sample(num1, num2):
     num2 = num1 if num2 > num1 else num2
     for i in range(num2):  # 随机产生索引的数量
         randIndex = int(random.uniform(0, len(dataList)))  # 在指定的范围内产生随机数位置索引
-        TrainIndex.append(dataList[randIndex])  # 进行存all_nodes储
+        TrainIndex.append(dataList[randIndex])  # 进行存储
         del (dataList[randIndex])  # 对已选中的元素进行删除，以便于下一次随机选取
     TestIndex = dataList  # 随机选取过后剩下的元素
     return TrainIndex, TestIndex  # 返回随机选取的一定数目的元素，和剩下的元素
@@ -43,60 +43,56 @@ def main():
 
     node_num = len(G.nodes())
     hp.node_num = node_num
-    # labeled_nodes = [[i, i%3] for i in range(300)]
-    # labeled_nodes格式：[[node_id, node_cls],[],[],...]，node_id表示这个节点的新的id，node_cls表示类别
 
-    labeled_nodes = []
-    all_nodes = []
-    label_set = set()
+    x = []
+    y = []
 
-    is_ground_truth_data_used = False
+    # allocate data
+    # all nodes feature vector
+    print('The dimension of each node : {}'.format(hp.vec_dim))
 
+    import numpy as np
+    f_init = np.zeros((hp.node_num, hp.vec_dim), dtype=np.float32)
 
-    if not is_ground_truth_data_used:
-        for n in range(node_num):
-            all_nodes.append(n)
-            if G.node[str(n)]['cls'] != -1:
-                labeled_nodes.append([n, G.node[str(n)]['cls']])
-                label_set.add(G.node[str(n)]['cls'])
-        hp.label = len(label_set)
-        random.shuffle(labeled_nodes)  # 标签打散
-        # labeled_nodes = labeled_nodes[:2000]
-    # Using ground truth training set
-    else:
-        import numpy as np
-        ground_truth_array = np.load(hp.ground_truth_labeled_supervoxel_file)
-        all_nodes_number = ground_truth_array.shape[0]
+    for n in range(node_num):
+        for i in range(hp.vec_dim):
+            f_init[n][i] = G.node[str(n)][str(i)]
+        if G.node[str(n)]['cls'] != -1:
+            x.append(list(f_init[n]))
+            y.append(G.node[str(n)]['cls'])
 
-        all_nodes = [n for n in range(node_num)]
-        train_set_number = int(all_nodes_number*0.2)
-
-        type_number = int(ground_truth_array.max()) + 1
-        # the number of train set for each type
-        train_set_number_for_each_type = train_set_number//type_number
-
-        for i in range(type_number):
-            buf_array = ground_truth_array[ground_truth_array == i]
-            buf_array_index = np.array(np.where(ground_truth_array == i)[0])
-            train_index_array, _ = random_sample(buf_array.shape[0], train_set_number_for_each_type)
-
-            for n in train_index_array:
-                labeled_nodes.append([buf_array_index[n], i])
-                label_set.add(i)
-        hp.label = len(label_set)
-        random.shuffle(labeled_nodes) # 标签打散
-
-        # print(labeled_nodes)
-
-    hp.labeled_node = len(labeled_nodes)
+    hp.label = len(set(y))
+    hp.labeled_node = len(y)
     print('Number of all nodes : ', hp.node_num)
     print('Number of labeled nodes : ', hp.labeled_node)
     print('Number of trained labeled nodes : ', int(hp.labeled_node * hp.ratio))
-    print('Number of test labeled nodes : ', int(hp.labeled_node * (1-hp.ratio)))
+    print('Number of test labeled nodes : ', int(hp.labeled_node * (1 - hp.ratio)))
+    x = np.array(x)
+    y = np.array(y, dtype=np.int)
+
+    # hp.vec_dim = pca.n_components_
+
+    gradients = f_init[:, -5]
+    max_gradient = np.max(gradients)
+    min_gradient = np.min(gradients)
+    gradient_norm = 1/(max_gradient-min_gradient)
+
+    all_nodes = []
+    labeled_nodes = []
+    for n in range(node_num):
+        all_nodes.append(n)
+        # for i in range(hp.vec_dim):
+        #     G.node[str(n)][str(i)] = new_x[n, i]
+        if G.node[str(n)]['cls'] != -1:
+            labeled_nodes.append([n, G.node[str(n)]['cls']])
+    for edge in G.edges():
+        weight = 1 - gradient_norm*abs(gradients[int(edge[0])] - gradients[int(edge[1])])
+        G[edge[0]][edge[1]]['weight'] = weight
+        G[edge[1]][edge[0]]['weight'] = weight
+        # print(gradient_norm, abs(gradients[int(edge[0])] - gradients[int(edge[1])]), weight)
 
 
-    # print(node_num)
-    # print("读取数据完成，填入模型参数")
+    random.shuffle(labeled_nodes)  # 标签打散
 
     arg = {}
     arg['hp'] = hp
@@ -124,7 +120,7 @@ def main():
     print("=============================================================")
     print("The model has been constructed. Start calculating laplacian matrix...")
     time1 = time.time()
-    dA, dxs, dys, dxu, dyu = train_data(hp, node_num, G, labeled_nodes)
+    dA, dxs, dys, dxu, dyu = train_data_with_weight(hp, node_num, G, labeled_nodes)
     time2 = time.time()
 
     print("Laplacian matrix calculation time : {} second.".format(int(time2-time1)))
@@ -182,10 +178,6 @@ def main():
         print("All predict result : ")
         print(_pre2[0])
         np.save(hp.predict_labeled_supervoxel_file, np.array(_pre2[0]))
-
-        if is_ground_truth_data_used:
-            ground_truth_array = np.load(hp.ground_truth_labeled_supervoxel_file)
-            print("All accuracy is : ", metrics.accuracy_score(ground_truth_array, _pre2[0]))
 
         saver.save(sess, "model/"+cur_time)
 

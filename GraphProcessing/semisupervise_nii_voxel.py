@@ -89,10 +89,10 @@ if __name__ == "__main__":
     vifo_file_path = vifo_file[:vifo_file.rfind('/') + 1]
     volume_raw_data = readVolumeRaw(vifo_file_path + raw_file_name, volume_type)
 
-    # read label int file
-    label_int_data = readVolumeRaw(label_raw_file, 'int')
 
-    semisupervise_result_file = file_prefix + json_content['file_name']['predict_labeled_supervoxel_file']
+    # read semi-supervise file TODO: integrate the labeled file to json file.
+    # semisupervise_result_file = '../VolumeGCN/labeled.npy'
+    semisupervise_result_file = file_prefix + json_content['file_name']['predict_labeled_voxel_file']
     labels = np.load(semisupervise_result_file)
 
 
@@ -100,19 +100,41 @@ if __name__ == "__main__":
     print("Number of labeled type : {}".format(n_clusters_))
     print("Max labeled type id : {}".format(max(set(labels))))
 
-    for i in range(0, max(set(labels))+1):
-        buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)
-        buf_index_array = np.array(np.where(labels == i))
-        label_number = len(buf_index_array[0])
+    # Extension 20200713
+    import SimpleITK
 
-        for j in buf_index_array[0]:
-            buf = np.where(label_int_data == j)
-            # print(buf)
-            buf_volume_array[buf] = volume_raw_data[buf]
-        if len(buf_index_array[0]) > 0:
-            buf_volume_array.tofile(
-                file_prefix + str(label_number) + '_part_' + str(i) + '.raw')
-            print("Cluster {} in {} has {} labels, and it has been saved.".format(i, n_clusters_, label_number))
+    itk_snap_labeled_nii_file = json_content["data_path"]["vifo_file"]
+    itk_snap_labeled_nii_file = itk_snap_labeled_nii_file[:-4] + "nii.gz"
+
+    file_prefix = json_content["data_path"]["file_prefix"]
+    itk_snap_labeled_voxel_file = file_prefix + json_content["file_name"]["itk_snap_labeled_voxel_file"]
+
+    itk_img = SimpleITK.ReadImage(itk_snap_labeled_nii_file)
+    img_array = SimpleITK.GetArrayFromImage(itk_img)
+
+    origin = itk_img.GetOrigin()
+    direction = itk_img.GetDirection()
+    space = itk_img.GetSpacing()
+
+    buf_volume_array = np.zeros(dtype=np.int16, shape=volume_raw_data.shape)
+    for i in range(0, max(set(labels)) + 1):
+        buf = np.where(labels == i)
+        label_number = len(np.array(buf)[0])
+        buf_volume_array[buf] = i + 1
+        print("Cluster {} in {} has {} labels, and it has been saved.".format(i, n_clusters_,
+                                                                              label_number))
+
+    buf_volume_array = buf_volume_array.reshape(img_array.shape)
+
+    save_nii_img = SimpleITK.GetImageFromArray(buf_volume_array)
+    save_nii_img.SetOrigin(origin)
+    save_nii_img.SetDirection(direction)
+    save_nii_img.SetSpacing(space)
+
+    nii_gz_file_name = file_prefix + json_content['file_name']['semi_supervise_nii_gz_file']
+    SimpleITK.WriteImage(save_nii_img, nii_gz_file_name)
+
+    print("Segmentation results for voxels have been saved in nii.gz file.")
 
     time_end = time.time()
     all_time = int(time_end - time_start)
@@ -120,4 +142,3 @@ if __name__ == "__main__":
     hours = int(all_time / 3600)
     minute = int((all_time - 3600 * hours) / 60)
     print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
-

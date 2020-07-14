@@ -269,7 +269,8 @@ void SLIC3D::EnforceLabelConnectivity(
 					//-------------------------------------------------------
 					//区域过小的话，需要直接与邻近区域合并
 					//TODO 三维情况下，超体素可能需要修改，原始是count <= SUPSZ >> 2
-					if (count <= SUPSZ >> 2)
+					//Debug 20200702 do not to merge adjacent.
+					if (count <= SUPSZ >> 3)
 					{
 						for (int c = 0; c < count; c++)
 						{
@@ -329,6 +330,7 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 	//----------------
 	int offset = STEP;
 	if (STEP < 10) offset = STEP * 1.5;
+	//offset = STEP * 1.5;
 	//----------------
 
 	//vector<double> sigmal(numk, 0);
@@ -362,6 +364,10 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 
 	double invxywt = 1.0 / (STEP*STEP*STEP);//NOTE: this is different from how usual SLIC/LKM works
 
+	//Debug 20200702
+	double weight = 0.65;
+	std::cout << "Weight : " << weight << std::endl;
+	
 	while (numitr < NUMITR)
 	{
 		//------
@@ -394,7 +400,7 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 						distxyz[i] = (z - kseedsz[n])*(z - kseedsz[n]) + (y - kseedsy[n])*(y - kseedsy[n]) + (x - kseedsx[n])*(x - kseedsx[n]);
 
 						//Debug 20191108 可修改距离映射，减少invxywt能有效降低距离的权重，减少maxintensity[n]能有效提高灰度值的权重
-						double dist = distintensity[i] / maxintensity[n] + distxyz[i] * invxywt;//only varying m, prettier superpixels
+						double dist = weight*distintensity[i] / maxintensity[n] + (1-weight)*distxyz[i] * invxywt;//only varying m, prettier superpixels
 
 						if (dist < distvec[i])
 						{
@@ -480,7 +486,7 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 				int label = klabels[n];
 				double dist_intensity = (m_volumevec[n] - kseedintensity[label]) * (m_volumevec[n] - kseedintensity[label]);
 				double dist_xyz = (z - kseedsz[label])* (z - kseedsz[label]) + (y - kseedsy[label]) * (y - kseedsy[label]) + (x - kseedsx[label]) * (x - kseedsx[label]);
-				double dist = dist_intensity / maxintensity[label] + dist_xyz * invxywt;//only varying m, prettier superpixels
+				double dist = weight * dist_intensity / maxintensity[label] + (1- weight) * dist_xyz * invxywt;//only varying m, prettier superpixels
 				error += dist;
 			}
 			error /= numk;
