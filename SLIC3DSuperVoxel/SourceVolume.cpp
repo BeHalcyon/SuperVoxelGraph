@@ -96,12 +96,12 @@ void SourceVolume::loadVolume()
 	min_value = std::vector<hxy::myreal>(volume_number, 1e8);
 	max_value = std::vector<hxy::myreal>(volume_number, -1e8);
 
-	if(type_name=="uchar")
+	if(type_name=="uchar" || type_name == "uint8" || type_name == "unsigned char")
 	{
 		std::vector<std::vector<unsigned char>> origin_data;
 		loadAndTransVolume(volume_file_name, volume_res, min_value, max_value, origin_data, volume_data);
 	}
-	else if(type_name=="ushort")
+	else if(type_name=="ushort" || type_name == "unsigned short" || type_name == "uint16")
 	{
 		std::vector<std::vector<unsigned short>> origin_data;
 		loadAndTransVolume(volume_file_name, volume_res, min_value, max_value, origin_data, volume_data);
@@ -111,7 +111,7 @@ void SourceVolume::loadVolume()
 		std::vector<std::vector<float>> origin_data;
 		loadAndTransVolume(volume_file_name, volume_res, min_value, max_value, origin_data, volume_data);
 	}
-	else if(type_name=="int")
+	else if(type_name=="int" || type_name == "unsigned int" || type_name == "uint32")
 	{
 		std::vector<std::vector<int>> origin_data;
 		loadAndTransVolume(volume_file_name, volume_res, min_value, max_value, origin_data, volume_data);

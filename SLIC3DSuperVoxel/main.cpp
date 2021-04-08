@@ -322,26 +322,31 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 		input_file >> configure_json;
 
 		
-
-		string			infoFileName = configure_json.data_path.vifo_file;
-		int				data_number;
-		string			datatype;
-		hxy::my_int3	dimension;
-		hxy::my_double3	space;
-		vector<string>	file_list;
-
-		readInfoFile(infoFileName, data_number, datatype, dimension, space, file_list);
+		//string			infoFileName = configure_json.data_path.vifo_file;
+		
+		string			datatype = configure_json.volumes.dtype;
+		hxy::my_int3	dimension = { configure_json.volumes.dimension[0], configure_json.volumes.dimension[1], configure_json.volumes.dimension[2] };
+		//hxy::my_double3	space = { configure_json.volumes.dimension[0], configure_json.volumes.dimension[1], configure_json.volumes.dimension[2] };
+		vector<string>	file_list = configure_json.volumes.file_names;
+		std::string		file_path = configure_json.volumes.file_path;
+		int				data_number = file_list.size();
+		//readInfoFile(infoFileName, data_number, datatype, dimension, space, file_list);
 
 		//auto file_path = file_list[0].substr(0, file_list[0].find_last_of('.'));
 
+		for (auto &f : file_list)
+		{
+			f = file_path + f;
+		}
+		
 		SourceVolume source_volume(file_list, dimension.x, dimension.y, dimension.z, datatype);
 
 		//source_volume.loadVolume();	//origin data
 		source_volume.loadRegularVolume(); //[0, 255] data
 		//source_volume.loadDownSamplingVolume(); //[0, histogram_dimension] data
 
-		auto volume_index = configure_json.data_path.volume_index;
-		
+		//auto volume_index = configure_json.data_path.volume_index;
+		auto volume_index = 0;
 		auto volume_data = source_volume.getRegularVolume(volume_index);
 
 		//----------------------------------
@@ -359,18 +364,18 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 		SLIC3D slic_3d;
 		slic_3d.PerformSLICO_ForGivenK((*volume_data).data(), dimension.x, dimension.y, dimension.z, klabels, num_labels, k, m);
 
-		auto file_prefix = configure_json.data_path.file_prefix;
+		auto file_prefix = configure_json.workspace;
 
 		//if (a.get<bool>("super_voxel_label"))
 		if (configure_json.volume2supervoxel.output_super_voxel_label)
 		{
-			auto output_label_file = file_prefix + configure_json.file_name.label_file;
+			auto output_label_file = file_prefix + configure_json.volume2supervoxel.supervoxel_id_file;
 			slic_3d.SaveSuperpixelLabels(klabels, dimension.x, dimension.y, dimension.z, output_label_file);
 		}
 		//if (a.get<bool>("gradient"))
 		if (configure_json.volume2supervoxel.output_gradient)
 		{
-			auto output_gradient_file = file_prefix + configure_json.file_name.gradient_file;
+			auto output_gradient_file = file_prefix + configure_json.volume2supervoxel.gradient_file;
 			slic_3d.SaveGradient(output_gradient_file);
 		}
 		auto segment_boundary_array = new int[dimension.x * dimension.y * dimension.z];
@@ -378,7 +383,7 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 
 		if (configure_json.volume2supervoxel.output_super_voxel_boundary)
 		{
-			auto output_boundary_file = file_prefix + configure_json.file_name.boundary_file;
+			auto output_boundary_file = file_prefix + configure_json.volume2supervoxel.boundary_file;
 			slic_3d.SaveSegmentBouyndaries(segment_boundary_array,
 				dimension.x, dimension.y, dimension.z, output_boundary_file);
 		}
@@ -390,7 +395,7 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 
 			string output_merged_label_file = "";
 			//if (a.get<bool>("merged_label")) buf_file_path = file_path + "_merged_label.raw";
-			if (configure_json.volume2supervoxel.output_merged_label) output_merged_label_file = file_prefix + configure_json.file_name.merged_label_file;
+			if (configure_json.volume2supervoxel.output_merged_label) output_merged_label_file = file_prefix + configure_json.volume2supervoxel.merged_label_file;
 
 			doSuperVoxelMerge(merged_label, (*volume_data).data(),
 				source_volume.getRegularDimenion(),
@@ -401,7 +406,7 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 
 			// if (a.get<bool>("merged_boundary")) {
 			if (configure_json.volume2supervoxel.output_merged_boundary) {
-				auto output_merged_boundary_file = file_prefix + configure_json.file_name.merged_boundary_file;
+				auto output_merged_boundary_file = file_prefix + configure_json.volume2supervoxel.merged_boundary_file;
 				slic_3d.DrawContoursAroundSegments(segment_boundary_array, merged_label, dimension.x, dimension.y, dimension.z);
 				slic_3d.SaveSegmentBouyndaries(segment_boundary_array, dimension.x, dimension.y, dimension.z, output_merged_boundary_file);
 			}

@@ -139,21 +139,25 @@ int main(int argc, char* argv[])
 		std::ifstream input_file(configure_json_file);
 		input_file >> configure_json;
 
-		const auto file_prefix = configure_json.data_path.file_prefix;
+		const auto file_prefix = configure_json.workspace;
 
-		std::string					infoFileName = configure_json.data_path.vifo_file;
-		int							data_number;
-		std::string					datatype;
-		hxy::my_int3				dimension;
-		hxy::my_double3				space;
-		std::vector<std::string>	file_list;
+		string			datatype = configure_json.volumes.dtype;
+		hxy::my_int3	dimension = { configure_json.volumes.dimension[0], configure_json.volumes.dimension[1], configure_json.volumes.dimension[2] };
+		//hxy::my_double3	space = { configure_json.volumes.dimension[0], configure_json.volumes.dimension[1], configure_json.volumes.dimension[2] };
+		vector<string>	file_list = configure_json.volumes.file_names;
+		std::string		file_path = configure_json.volumes.file_path;
+		int				data_number = file_list.size();
+		for (auto& f : file_list)
+		{
+			f = file_path + f;
+		}
+		
+		auto histogram_size = configure_json.supervoxelnodefeature.histogram_size;
 
-		auto histogram_size = configure_json.supervoxel2histogram.histogram_size;
-
-		readInfoFile(infoFileName, data_number, datatype, dimension, space, file_list);
+		//readInfoFile(infoFileName, data_number, datatype, dimension, space, file_list);
 		SourceVolume source_volume(file_list, dimension.x, dimension.y, dimension.z, datatype, 256, histogram_size);
 		source_volume.loadRegularVolume(); //[0, 255] data
-		auto volume_index = configure_json.data_path.volume_index;
+		auto volume_index = 0;
 		// auto volume_data = source_volume.getRegularVolume(volume_index);
 
 		// [0, histogram_size]
@@ -161,7 +165,7 @@ int main(int argc, char* argv[])
 
 
 		// Load labeled volume
-		auto labeled_volume_file = file_prefix + configure_json.file_name.label_file;
+		auto labeled_volume_file = file_prefix + configure_json.volume2supervoxel.supervoxel_id_file;
 		// The regular_histogram_dimension and downing_sampling_histogram_dimension parameters can be ignored.
 		SourceVolume labeled_volume({ labeled_volume_file }, dimension.x, dimension.y, dimension.z, "int", 256, 256);
 		auto labeled_data = labeled_volume.getOriginVolume(0);
@@ -187,7 +191,7 @@ int main(int argc, char* argv[])
 
 		
 		// Read the gradient volume from file.
-		auto gradient_volume_file = file_prefix + configure_json.file_name.gradient_file;
+		auto gradient_volume_file = file_prefix + configure_json.volume2supervoxel.gradient_file;
 		SourceVolume gradient_volume({ gradient_volume_file }, dimension.x, dimension.y, dimension.z, "float", 256, 256);
 		// Create the array to store the gradient raw data for each label.
 		//std::vector<float> gradient_volume_data;
@@ -279,7 +283,7 @@ int main(int argc, char* argv[])
 		
 		// Update the histogram based the histogram_stored_type
 		{
-			auto histogram_stored_type = configure_json.supervoxel2histogram.histogram_stored_type;
+			auto histogram_stored_type = configure_json.supervoxelnodefeature.histogram_stored_type;
 			if (histogram_stored_type == 1)
 			{
 				// Normalize
@@ -333,13 +337,13 @@ int main(int argc, char* argv[])
 
 		string calculated_information = "[ value histogram information";
 		// is_histogram_stored is default to set to 1 for calculation forever. But it can be set to 0 for filtering the data.
-		if(!configure_json.supervoxel2histogram.histogram_stored_type)
+		if(!configure_json.supervoxelnodefeature.histogram_stored_type)
 		{
 			label_histogram_array.clear();
 			calculated_information = "[ ";
 		}
 
-		if(configure_json.supervoxel2histogram.is_gradient_stored)
+		if(configure_json.supervoxelnodefeature.is_gradient_stored)
 		{
 			// Add average gradient for each label to the histogram vector
 			for (auto i = 0; i < label_number; i++)
@@ -351,7 +355,7 @@ int main(int argc, char* argv[])
 			}
 			calculated_information += ", gradient";
 		}
-		if(configure_json.supervoxel2histogram.is_entropy_stored)
+		if(configure_json.supervoxelnodefeature.is_entropy_stored)
 		{
 			// Add information entropy for each label to the histogram vector
 			for (auto i = 0; i < label_number; i++)
@@ -360,7 +364,7 @@ int main(int argc, char* argv[])
 			}
 			calculated_information += ", information entropy";
 		}
-		if(configure_json.supervoxel2histogram.is_barycenter_stored)
+		if(configure_json.supervoxelnodefeature.is_barycenter_stored)
 		{
 			// Add barycenter for each label to the histogram vector
 			for (auto i = 0; i < label_number; i++)
@@ -376,8 +380,8 @@ int main(int argc, char* argv[])
 
 
 		// 保存
-		saveLabelVector(label_histogram_array, file_prefix + configure_json.file_name.label_histogram_file);
-		saveEdge(edge_weight_array, file_prefix + configure_json.file_name.edge_weight_file);
+		saveLabelVector(label_histogram_array, file_prefix + configure_json.supervoxelnodefeature.label_histogram_file);
+		saveEdge(edge_weight_array, file_prefix + configure_json.supervoxelnodefeature.edge_weight_file);
 
 		vm::println("The stored information for each label : {}", calculated_information);
 	}

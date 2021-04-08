@@ -9,22 +9,7 @@ import time
 import csv
 import numpy as np
 
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="Histogram to Graph")
-
-    parser.add_argument('--configure_file', default='../x64/Release/workspace/spheres_supervoxel.json',
-                        help='configure json file')
-
-    parser.add_argument('--type', type=int, default=1,
-                        help='1 for only one csv file and the second column is available. 2 for '
-                             'multiple csv file and the second column is not available. 0 for only one csv file labeled by itk SNAP. ')
-
-    parser.add_argument('--csv_file', nargs='*', help='csv file export by gephi')
-
-    args = parser.parse_args()
-    return args
-
+from tools import parse_args
 
 def saveGraph(G, graph_file_name):
     nx.write_gexf(G, graph_file_name)
@@ -92,42 +77,79 @@ def addLabelForGraph(G, label_csv_file, labeled_volume_file_name: str):
 if __name__ == "__main__":
     start = time.clock()
 
-    hp = parse_args()
-    f = open(hp.configure_file)
-    json_content = json.load(f)
+    hp = parse_args("SupervoxelGraph --- label graph")
 
-    file_prefix = json_content["data_path"]["file_prefix"]
-    gexf_file = file_prefix + json_content["file_name"]["graph_file"]
-    labeled_gexf_file = file_prefix + json_content["file_name"]["labeled_graph_file"]
+    workspace = hp.workspace
+    gexf_file = os.path.join(workspace, hp.graph_file)
+    labeled_gexf_file = os.path.join(workspace, hp.labeled_graph_file)
+
 
     print('Begin to transform the unlabeled graph to labeled graph...')
-
     G = nx.read_gexf(gexf_file)
 
     if hp.type == 1:
         print('Loading combined csv labeled file...')
-        labeled_voxel_file = file_prefix + json_content["file_name"]["labeled_voxel_file"]
-        labeled_int_volume_file = file_prefix + json_content["file_name"]["label_file"]
+        labeled_voxel_file = workspace + hp.labeled_file
+        labeled_int_volume_file = workspace + hp.label_file
         if os.path.exists(labeled_voxel_file):
             label_type_number = addLabelForGraph(G, labeled_voxel_file, labeled_int_volume_file)
             print('The number of labeled type: {}'.format(label_type_number))
     elif hp.type == 0:
         print('Loading combined csv labeled file from itk SNAP tool...')
-        itk_snap_labeled_voxel_file = file_prefix + json_content["file_name"]["itk_snap_labeled_voxel_file"]
-        labeled_int_volume_file = file_prefix + json_content["file_name"]["label_file"]
+        itk_snap_labeled_voxel_file = workspace + hp.labeled_file
+        labeled_int_volume_file = workspace + hp.label_file
         if os.path.exists(itk_snap_labeled_voxel_file):
             label_type_number = addLabelForGraph(G, itk_snap_labeled_voxel_file, labeled_int_volume_file)
             print('The number of labeled type: {}'.format(label_type_number))
+    # test sphere/lung file
     elif hp.type == 2:
-        print('Loading ground_truth npy labeled file...')
-        ground_truth_labeled_supervoxel_file = file_prefix + json_content["file_name"]["ground_truth_labeled_supervoxel_file"]
+        print('Loading ground_truth labeled file...')
+        ground_truth_labeled_supervoxel_file = workspace + hp.labeled_file
+        print(ground_truth_labeled_supervoxel_file)
         # labeled_int_volume_file = file_prefix + json_content["file_name"]["label_file"]
         if os.path.exists(ground_truth_labeled_supervoxel_file):
-            # load ground truth npy file
-            labeled_id = np.load(ground_truth_labeled_supervoxel_file)
-            for i in range(labeled_id.shape[0]):
-                G.add_node(i, cls=str(labeled_id[i]))
-            print('The number of labeled type: {}'.format(len(set(labeled_id))))
+
+            # load labeled int raw file
+            labeled_volume_data = np.fromfile(ground_truth_labeled_supervoxel_file, dtype=np.uint8).flatten()
+            supervoxel_id_array = np.fromfile(workspace+hp.supervoxel_id_file, dtype=np.int32).flatten()
+            # create a dictionary to store the supervoxel ids and their type
+            labeled_supervoxel_dict = {}
+
+            # update the dictionary
+            for i in range(supervoxel_id_array.shape[0]):
+                if supervoxel_id_array[i] in labeled_supervoxel_dict.keys():
+                    labeled_supervoxel_dict[supervoxel_id_array[i]].append(labeled_volume_data[i])
+                else:
+                    labeled_supervoxel_dict[supervoxel_id_array[i]] = []
+
+            # count the ambiguous super-voxels
+            ambiguous_supervoxel_number = 0
+
+            # update the node type.
+            for key, value in labeled_supervoxel_dict.items():
+                v = np.argmax(np.bincount(np.array(value)))
+                # print(key, value, v)
+                if len(set(value)) > 1:
+                    ambiguous_supervoxel_number += 1
+                labeled_supervoxel_dict[key] = v
+                G.add_node(key, cls=str(v))
+
+            # count the number
+            ls = list(labeled_supervoxel_dict.values())
+            label_type_number = len(set(labeled_supervoxel_dict.values()))
+            for i in range(label_type_number):
+                print("Type id : {}, supervoxel Number : {}".format(i, ls.count(i)))
+            print("Ambiguous supervoxel number : {}, proportion : {:.2f}%".format(ambiguous_supervoxel_number,
+                                                                                  ambiguous_supervoxel_number*100/len(ls)))
+        else:
+            print("Error")
+
+            # # load ground truth npy file
+            # labeled_id = np.load(ground_truth_labeled_supervoxel_file)
+            # labeled_id = labeled_id.flatten()
+            # for i in range(labeled_id.shape[0]):
+            #     G.add_node(i, cls=str(labeled_id[i]))
+            # print('The number of labeled type: {}'.format(len(set(labeled_id))))
     else:
         print('Loading separated csv labeled file...')
         for i in range(len(hp.csv_file)):

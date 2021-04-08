@@ -141,7 +141,7 @@ void SLIC3D::PerformSLICO_ForGivenK(
 	//步长太小的情况下，添加一个小的值
 	int STEP = pow(double(sz) / double(K), 1.0 / 3) + 2.0;//adding a small value in the even the STEP size is too small.
 	//PerformSuperpixelSLIC(kseedsl, kseedsa, kseedsb, kseedsx, kseedsy, klabels, STEP, edgemag, m);
-	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 50, m);
+	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 20, m);
 	std::cout << "K-means clustering has been calculated." << std::endl;
 
 
