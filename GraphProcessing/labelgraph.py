@@ -87,6 +87,10 @@ if __name__ == "__main__":
     print('Begin to transform the unlabeled graph to labeled graph...')
     G = nx.read_gexf(gexf_file)
 
+    # print(G.nodes)
+    # print(G.nodes[str(100)])
+
+
     if hp.type == 1:
         print('Loading combined csv labeled file...')
         labeled_voxel_file = workspace + hp.labeled_file
@@ -111,20 +115,33 @@ if __name__ == "__main__":
 
             # load labeled int raw file
             labeled_volume_data = np.fromfile(ground_truth_labeled_supervoxel_file, dtype=np.uint8).flatten()
+            print(max(labeled_volume_data))
             supervoxel_id_array = np.fromfile(workspace+hp.supervoxel_id_file, dtype=np.int32).flatten()
+            assert max(supervoxel_id_array)+1 == len(G.nodes())
+
             # create a dictionary to store the supervoxel ids and their type
             labeled_supervoxel_dict = {}
+
 
             # update the dictionary
             for i in range(supervoxel_id_array.shape[0]):
                 if supervoxel_id_array[i] in labeled_supervoxel_dict.keys():
                     labeled_supervoxel_dict[supervoxel_id_array[i]].append(labeled_volume_data[i])
                 else:
-                    labeled_supervoxel_dict[supervoxel_id_array[i]] = []
+                    labeled_supervoxel_dict[supervoxel_id_array[i]] = [labeled_volume_data[i]]
+
+            # new_array = np.zeros(supervoxel_id_array.shape, dtype=np.uint8)
+            # for key, value in labeled_supervoxel_dict.items():
+            #     new_array[supervoxel_id_array == key] = value[0]
+            #
+            #
+            # new_array.tofile("test_supervoxel_volume.raw")
+            # print("test---------------------------------------")
+
 
             # count the ambiguous super-voxels
             ambiguous_supervoxel_number = 0
-
+            voxel_number_in_supervoxel_list = []
             # update the node type.
             for key, value in labeled_supervoxel_dict.items():
                 v = np.argmax(np.bincount(np.array(value)))
@@ -132,7 +149,9 @@ if __name__ == "__main__":
                 if len(set(value)) > 1:
                     ambiguous_supervoxel_number += 1
                 labeled_supervoxel_dict[key] = v
-                G.add_node(key, cls=str(v))
+                voxel_number_in_supervoxel_list.append(len(value))
+                # G.add_node(key, cls=v)
+                G.nodes[str(key)]['cls'] = v
 
             # count the number
             ls = list(labeled_supervoxel_dict.values())
@@ -141,6 +160,7 @@ if __name__ == "__main__":
                 print("Type id : {}, supervoxel Number : {}".format(i, ls.count(i)))
             print("Ambiguous supervoxel number : {}, proportion : {:.2f}%".format(ambiguous_supervoxel_number,
                                                                                   ambiguous_supervoxel_number*100/len(ls)))
+            print("Average number of voxels in a supervoxel : {:.2f}".format(sum(voxel_number_in_supervoxel_list)/len(voxel_number_in_supervoxel_list)))
         else:
             print("Error")
 

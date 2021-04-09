@@ -15,10 +15,10 @@ def histogramToGraph():
 
     workspace = hp.workspace
     label_histogram_file = os.path.join(workspace, hp.label_histogram_file)
-    label_histogram_array = np.loadtxt(label_histogram_file)
+    label_histogram_array = np.loadtxt(label_histogram_file).astype(np.float32)
     label_number = label_histogram_array.shape[0]
 
-    label_histogram_array.tofile(os.path.join(workspace, hp.graph_node_feature_file))
+    np.save(os.path.join(workspace, hp.graph_node_feature_file), label_histogram_array)
 
     edge_weight_file = os.path.join(workspace, hp.edge_weight_file)
     edge_array = np.loadtxt(edge_weight_file)
@@ -43,7 +43,7 @@ def histogramToGraph():
 
 
     for i in range(label_number):
-        G.add_node(i, cls=-1)
+        G.add_node(str(i), cls=-1)
 
         # for j in range(label_histogram_array[i].shape[0]):
         #     G.node[i][j] = str(label_histogram_array[i][j])

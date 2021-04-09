@@ -30,7 +30,7 @@ def loadNiiFile(file_name, mode='volume'):
     else:
         # print("Label number : {}". format(len(set(img_array.flatten()))))
         img_array[img_array == 255] = 1
-        regular_array = img_array
+        regular_array = img_array.astype(np.uint8)
     return regular_array
 
 

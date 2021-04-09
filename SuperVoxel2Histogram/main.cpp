@@ -170,10 +170,11 @@ int main(int argc, char* argv[])
 		SourceVolume labeled_volume({ labeled_volume_file }, dimension.x, dimension.y, dimension.z, "int", 256, 256);
 		auto labeled_data = labeled_volume.getOriginVolume(0);
 
+		
+		
 		// Label number is the max value of the labeled_data plus 1.
 		auto max_index = max_element((*labeled_data).begin(), (*labeled_data).end());
 		auto label_number = *max_index + 1;
-
 
 		// Create the array to store the vector for each label
 		std::vector<std::vector<float>> label_histogram_array(label_number);

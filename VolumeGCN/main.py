@@ -8,6 +8,7 @@ from tqdm import tqdm
 from module import Graphs, metricMeasure
 from load_data import train_data
 from sklearn import metrics
+
 from args import parse_args
 import math
 import time
@@ -33,6 +34,7 @@ def random_sample(num1, num2):
     return TrainIndex, TestIndex  # 返回随机选取的一定数目的元素，和剩下的元素
 
 def main():
+
     time_start = time.time()
     hp = parse_args()
     # print("开始读取数据")
@@ -50,29 +52,34 @@ def main():
     all_nodes = []
     label_set = set()
 
-    is_ground_truth_data_used = False
-
+    is_ground_truth_data_used = True
+    ground_truth_array = []
 
     if not is_ground_truth_data_used:
         for n in range(node_num):
             all_nodes.append(n)
-            if G.node[str(n)]['cls'] != -1:
-                labeled_nodes.append([n, G.node[str(n)]['cls']])
-                label_set.add(G.node[str(n)]['cls'])
+            if G.nodes[str(n)]['cls'] != -1:
+                labeled_nodes.append([n, G.nodes[str(n)]['cls']])
+                label_set.add(G.nodes[str(n)]['cls'])
         hp.label = len(label_set)
         random.shuffle(labeled_nodes)  # 标签打散
         # labeled_nodes = labeled_nodes[:2000]
     # Using ground truth training set
     else:
         import numpy as np
-        ground_truth_array = np.load(hp.ground_truth_labeled_supervoxel_file)
-        all_nodes_number = ground_truth_array.shape[0]
+        # ground_truth_array stores the supervoxels' id. 1D array [id1, id2, id3, ..., ]
+
+        for n in range(node_num):
+            all_nodes.append(n)
+            ground_truth_array.append(int(G.nodes[str(n)]['cls']))
+        ground_truth_array = np.array(ground_truth_array)
+        all_nodes_number = node_num
 
         all_nodes = [n for n in range(node_num)]
-        train_set_number = int(all_nodes_number*0.2)
+        train_set_number = int(all_nodes_number*0.1)
 
         type_number = int(ground_truth_array.max()) + 1
-        # the number of train set for each type
+        # the number of train set for each type, sample average
         train_set_number_for_each_type = train_set_number//type_number
 
         for i in range(type_number):
@@ -82,6 +89,7 @@ def main():
 
             for n in train_index_array:
                 labeled_nodes.append([buf_array_index[n], i])
+                # print([buf_array_index[n], i])
                 label_set.add(i)
         hp.label = len(label_set)
         random.shuffle(labeled_nodes) # 标签打散
@@ -94,7 +102,6 @@ def main():
     print('Number of trained labeled nodes : ', int(hp.labeled_node * hp.ratio))
     print('Number of test labeled nodes : ', int(hp.labeled_node * (1-hp.ratio)))
 
-
     # print(node_num)
     # print("读取数据完成，填入模型参数")
 
@@ -102,7 +109,16 @@ def main():
     arg['hp'] = hp
     print("The model parameters have been set.")
     # print("构建模型")
-    m = Volume_GCN(arg, G)
+
+    # initial feature vector
+    initial_feature_vector = np.load(hp.workspace + hp.graph_node_feature_file)
+
+    assert initial_feature_vector.shape[0] == hp.node_num
+
+    initial_feature_vector = initial_feature_vector[:, :hp.vec_dim]
+
+
+    m = Volume_GCN(arg, G, initial_feature_vector)
     A = tf.placeholder(dtype=tf.float32, shape=(node_num, node_num), name='A')
     # 训练集
     xs = tf.placeholder(dtype=tf.int32, shape=(int(hp.labeled_node * hp.ratio)), name='xs')
@@ -152,7 +168,6 @@ def main():
 
         for i in tqdm(range(hp.epochs)):
             _loss, _, _gs, s = sess.run([loss, train_op, global_step, merge_summary], feed_dict={A: dA, xs: dxs, ys: dys})
-
             print("   Epoch : %02d   loss : %.4f" % (i+1, _loss))
 
             summary_writer.add_summary(s, i)
@@ -184,7 +199,7 @@ def main():
         np.save(hp.predict_labeled_supervoxel_file, np.array(_pre2[0]))
 
         if is_ground_truth_data_used:
-            ground_truth_array = np.load(hp.ground_truth_labeled_supervoxel_file)
+            # ground_truth_array = np.load(hp.ground_truth_labeled_supervoxel_file)
             print("All accuracy is : ", metrics.accuracy_score(ground_truth_array, _pre2[0]))
 
         saver.save(sess, "model/"+cur_time)

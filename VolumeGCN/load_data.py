@@ -1,9 +1,9 @@
 import numpy as np
 
 def train_data(hp, node_num, G, labeled_nodes):
-    D = np.zeros((node_num, ))
+    D = np.zeros((node_num, ), dtype=np.float32)
     # A为连接关系矩阵 D为度矩阵
-    A = np.eye(node_num)
+    A = np.eye(node_num, dtype=np.float32)
     N = len(labeled_nodes)
     node_id = [node[0] for node in labeled_nodes]
     # 训练节点和测试节点存储的数据都只是node原始的id

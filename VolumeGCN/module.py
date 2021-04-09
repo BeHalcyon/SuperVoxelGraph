@@ -33,7 +33,31 @@ def node_classification(x, x_label, y):
     return cls.predict(y)
 
 
-def get_initialization(hp, G):
+def get_initialization(hp, initial_feature_vector):
+    # h_init = (np.random.randn(hp.node_num, hp.dim) / np.sqrt(hp.node_num/2)).astype('float32')
+    # f_init = np.zeros((hp.node_num, hp.vec_dim), dtype=np.float32)
+
+    print('The dimension of each node : {}'.format(hp.vec_dim))
+
+    # for n in range(hp.node_num):
+    #     for i in range(hp.vec_dim):
+    #         # print(n, i)
+    #         f_init[n][i] = G.nodes[str(n)][str(i)]
+
+    # w1_init = (np.random.randn(hp.dim, hp.hidden1) / np.sqrt(hp.dim/2)).astype('float32')
+    # w2_init = (np.random.randn(hp.hidden1, hp.dim) / np.sqrt(hp.dim / 2)).astype('float32')
+    # W_init = (np.random.randn(hp.dim, hp.label) / np.sqrt(hp.dim/2)).astype('float32')
+    # y = []
+    # for t in range(hp.T):
+    #     y.append(tf.Variable(h_init + 0.001 * tf.random_normal([hp.node_num, hp.dim]) / np.sqrt(hp.node_num/2),
+    #                          name='emb_'+str(t), trainable=True))
+    f = tf.Variable(initial_feature_vector, name='emb', trainable=True)
+    # w1 = tf.Variable(w1_init, name='w1', trainable=True)
+    # w2 = tf.Variable(w2_init, name='w2', trainable=True)
+    # W = tf.Variable(W_init, name='W', trainable=True)
+    return f
+
+def get_initialization_old(hp, G):
     # h_init = (np.random.randn(hp.node_num, hp.dim) / np.sqrt(hp.node_num/2)).astype('float32')
     f_init = np.zeros((hp.node_num, hp.vec_dim), dtype=np.float32)
 
@@ -42,7 +66,7 @@ def get_initialization(hp, G):
     for n in range(hp.node_num):
         for i in range(hp.vec_dim):
             # print(n, i)
-            f_init[n][i] = G.node[str(n)][str(i)]
+            f_init[n][i] = G.nodes[str(n)][str(i)]
 
     # w1_init = (np.random.randn(hp.dim, hp.hidden1) / np.sqrt(hp.dim/2)).astype('float32')
     # w2_init = (np.random.randn(hp.hidden1, hp.dim) / np.sqrt(hp.dim / 2)).astype('float32')
