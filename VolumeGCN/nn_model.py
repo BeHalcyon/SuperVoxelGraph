@@ -85,9 +85,15 @@ def main():
 
 
 def nnModel(hp, f_init, train_data, train_label):
+    import time
+    time_start = time.time()
     y_train_onehot = np_utils.to_categorical(train_label)
     # y_test_onehot = np_utils.to_categorical(test_label)
     # 声明序贯模型
+
+    hp.hidden1 = 256
+    hp.hidden2 = 64
+
     model = Sequential()
     model.add(Dense(units=hp.hidden1,
                     input_dim=hp.vec_dim,
@@ -96,7 +102,7 @@ def nnModel(hp, f_init, train_data, train_label):
     model.add(Dense(units=hp.hidden2,
                     kernel_initializer='normal',
                     activation='relu'))
-    model.add(Dense(units=hp.label,
+    model.add(Dense(units=hp.label_type_number,
                     kernel_initializer='normal',
                     activation='softmax'))
     model.compile(loss='categorical_crossentropy',
@@ -104,8 +110,8 @@ def nnModel(hp, f_init, train_data, train_label):
     train_history = model.fit(x=train_data,
                               y=y_train_onehot,
                               validation_split=1 - hp.ratio,
-                              epochs=100,
-                              batch_size=10,
+                              epochs=50,
+                              batch_size=128,
                               verbose=2)
     # train_data, test_data, train_label, test_label = train_test_split(x, y, random_state=1, train_size=hp.ratio,
     #                                                 test_size=1-hp.ratio)  # sklearn.model_selection.
@@ -120,9 +126,15 @@ def nnModel(hp, f_init, train_data, train_label):
     print("recall score : {}".format(recall_score))
     print("f1 score : {}".format(f1_score))
     print("All predict result : ")
+
+    time_end = time.time()
+    print("Training time for rf : {}s".format(time_end-time_start))
+
     predictions = model.predict_classes(f_init)
     print(predictions)
-    return predictions
+    print("Predicting time for rf : {}s".format(time.time() - time_end))
+
+    return predictions.flatten().astype(np.int32)
 
 
 if __name__ == '__main__':

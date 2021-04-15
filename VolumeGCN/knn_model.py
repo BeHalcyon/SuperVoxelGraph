@@ -77,6 +77,7 @@ def main():
 
 
 def knnModel(f_init, train_data, train_label, test_data, test_label):
+    time_start = time.time()
     knn = KNeighborsClassifier(1, p=2)
     knn.fit(train_data, train_label)
     a = knn.score(train_data, train_label)
@@ -90,10 +91,40 @@ def knnModel(f_init, train_data, train_label, test_data, test_label):
     print("precision score : {}".format(precision_sorce))
     print("recall score : {}".format(recall_score))
     print("f1 score : {}".format(f1_score))
+
+    time_end = time.time()
+    print("Training time for knn : {}s".format(time_end-time_start))
+
+
+    if f_init.shape[0] < 1e5:
+        predict_result = knn.predict(f_init)
+        print("Predicting time for rf : {}s".format(time.time() - time_end))
+        return predict_result.flatten().astype(np.int32)
+
+    batch_size = 4196
+    batch_number = (f_init.shape[0]+batch_size-1)//batch_size
+    predict_result = np.zeros(f_init.shape[0], dtype=np.int32)
+    for i in range(batch_number):
+        if i % 50 == 0:
+            print('Processing svm prediction: {:.2f}%'.format(i*100/(batch_number-1)))
+        end_pos = (i+1)*batch_size
+        if i == batch_number - 1:
+            end_pos = f_init.shape[0]
+        predict_result[i*batch_size:end_pos] = knn.predict(f_init[i*batch_size:end_pos, :])
+
+    # predict_result = classifier.predict(f_init)
+    print("Predicting time for rf : {}s".format(time.time() - time_end))
+
+    return predict_result.flatten().astype(np.int32)
+
+
+    # predict all results
     print("All predict result : ")
     predictions2 = knn.predict(f_init)
     print(predictions2)
-    return predictions2
+    print("Predicting time for rf : {}s".format(time.time() - time_end))
+
+    return predictions2.flatten().astype(np.int32)
 
 
 def parameterSelect(test_data, test_label, train_data, train_label):

@@ -64,7 +64,6 @@ def main():
     predict_result = svmModel(f_init, train_data, test_label, test_data, train_label)
     np.save(hp.predict_labeled_supervoxel_file, np.array(predict_result))
 
-
     print('The predict labeled supervoxel file trained by svm has been save in : {}'.
           format(hp.predict_labeled_supervoxel_file))
 
@@ -76,7 +75,33 @@ def main():
     print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
 
 
+def predictSVM(index, process_number, f_init, classifier):
+
+    feature_number = f_init.shape[0]
+    length = (feature_number + process_number - 1) // process_number
+    start_index = length * index
+    end_index = length * (index + 1)
+    if end_index > feature_number:
+        end_index = feature_number
+
+    batch_size = 4196
+    batch_number = (end_index - start_index + batch_size - 1) // batch_size
+    predict_result = np.zeros(end_index - start_index, dtype=np.int32)
+    for i in range(batch_number):
+        if i % 10 == 0:
+            print('Thread id: {}, Processing svm prediction: {:.2f}%'.format(index, i * 100 / (batch_number - 1)))
+        end_pos = start_index + (i + 1) * batch_size
+        if end_pos > end_index:
+            end_pos = end_index
+        predict_result[i * batch_size:end_pos - start_index] = classifier.predict(
+            f_init[start_index + i * batch_size:end_pos, :])
+
+    return predict_result
+
+
 def svmModel(f_init, train_data, test_label, test_data, train_label):
+    import time
+    time_start = time.time()
     # 3. train svm
     C = 1
     gamma = 0.03
@@ -108,9 +133,56 @@ def svmModel(f_init, train_data, test_label, test_data, train_label):
     print("precision score : {}".format(precision_sorce))
     print("recall score : {}".format(recall_score))
     print("f1 score : {}".format(f1_score))
+
+    time_end = time.time()
+    print("Training time for svm : {}s".format(time_end - time_start))
+
+    if f_init.shape[0] < 1e5:
+        predict_result = classifier.predict(f_init)
+        print("Predicting time for rf : {}s".format(time.time() - time_end))
+        return predict_result.flatten().astype(np.int32)
+
+    # # multiprocessing
+    # import multiprocessing
+    #
+    # process_number = 8
+    # pool = multiprocessing.Pool(processes=process_number)
+    #
+    #
+    # results = []
+    # for i in range(process_number):
+    #     results.append(pool.apply_async(predictSVM, (i, process_number, f_init, classifier)))
+    # pool.close()
+    # pool.join()
+    #
+    # results = [res.get() for res in results]
+    # predict_result = []
+    # for res in results:
+    #     for a in res:
+    #         predict_result.append(a)
+    # predict_result = np.array(predict_result, dtype=np.int32)
+    #
+    # batch_size = 4196
+    # batch_number = len(f_init) // batch_size + 1
+    # predict_result = np.zeros(f_init.shape[0], dtype=np.int32)
+
     # predict all results
-    predict_result = classifier.predict(f_init)
-    return predict_result
+    # batch prediction
+    batch_size = 4196
+    batch_number = (f_init.shape[0]+batch_size-1)//batch_size
+    predict_result = np.zeros(f_init.shape[0], dtype=np.int32)
+    for i in range(batch_number):
+        if i % 50 == 0:
+            print('Processing svm prediction: {:.2f}%'.format(i*100/(batch_number-1)))
+        end_pos = (i+1)*batch_size
+        if i == batch_number - 1:
+            end_pos = f_init.shape[0]
+        predict_result[i*batch_size:end_pos] = classifier.predict(f_init[i*batch_size:end_pos, :])
+
+    # predict_result = classifier.predict(f_init)
+    print("Predicting time for rf : {}s".format(time.time() - time_end))
+
+    return predict_result.flatten().astype(np.int32)
 
 
 if __name__ == '__main__':

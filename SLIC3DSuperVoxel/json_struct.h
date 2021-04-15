@@ -62,7 +62,7 @@ struct SuperVoxelGraphJSONStruct : public vm::json::Serializable<SuperVoxelGraph
 struct ModelJSONStruct : public vm::json::Serializable<ModelJSONStruct>
 {
 	VM_JSON_FIELD(int, vector_dimension);
-	VM_JSON_FIELD(int, dimension);
+	//VM_JSON_FIELD(int, dimension);
 	VM_JSON_FIELD(int, epochs);
 	VM_JSON_FIELD(double, learning_rate);
 	VM_JSON_FIELD(int, warmup_steps);

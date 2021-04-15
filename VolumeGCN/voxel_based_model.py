@@ -13,7 +13,7 @@ from knn_model import knnModel
 from svm_model import svmModel
 
 from sklearn.model_selection import train_test_split
-from args import parse_args
+from args import *
 
 # def parse_args():
 #     parser = argparse.ArgumentParser(description="Do voxel-based model.")
@@ -36,54 +36,27 @@ def readVifo(file_name):
         space = [float(x) for x in ls[3].split(' ')]
         raw_file_name = ls[4]
         return volume_number, volume_type, dimension, space, raw_file_name
+
 def readVolumeRaw(file_name, dtype='uchar'):
-    if dtype == 'uchar':
+    if dtype == 'uchar' or dtype == 'unsigned char' or dtype == 'uint8':
         return np.fromfile(file_name, dtype=np.uint8)
     elif dtype == 'float':
         return np.fromfile(file_name, dtype=np.float32)
-    elif dtype == 'ushort':
+    elif dtype == 'ushort' or dtype == 'unsigned short' or dtype == 'uint16':
         return np.fromfile(file_name, dtype=np.uint16)
-    elif dtype == 'int':
+    elif dtype == 'int' or dtype == 'unsigned int' or dtype == 'uint32':
         return np.fromfile(file_name, dtype=np.int)
-def main():
 
-
-
-    hp = parse_args()
-    configure_json_file = hp.configure_file
-
-    f = open(configure_json_file)
-    json_content = json.load(f)
-    file_prefix = json_content["data_path"]["file_prefix"]
-
-    # 0. read vifo file
-    vifo_file = json_content["data_path"]["vifo_file"]
-    volume_number, volume_type, dimension, space, raw_file_name = readVifo(vifo_file)
-
+def initalVoxelFeatures(hp):
     # 1. read origin raw file
-    vifo_file_path = vifo_file[:vifo_file.rfind('/') + 1]
-    volume_raw_data = readVolumeRaw(vifo_file_path + raw_file_name, volume_type)
-
+    volume_raw_data = readVolumeRaw(hp.file_path + hp.file_names[0], hp.dtype)
     # 2. read gradient data
-    gradient_file_name = file_prefix + json_content["file_name"]["gradient_file"]
-    gradient_raw_data = readVolumeRaw(gradient_file_name, 'float')
+    gradient_raw_data = readVolumeRaw(hp.workspace + hp.gradient_file, 'float')
 
-    # 3. read itk labeled csv file
-    itk_snap_labeled_voxel_file = file_prefix + json_content["file_name"]["itk_snap_labeled_voxel_file"]
-    labeled_voxel_data_frame = pd.read_csv(itk_snap_labeled_voxel_file)
+    dimension = hp.dimension
+    volume_length = dimension[0] * dimension[1] * dimension[2]
 
-    labeled_voxel_dict = dict()
-    for i in range(len(labeled_voxel_data_frame['VoxelPos'])):
-        labeled_voxel_dict[labeled_voxel_data_frame['VoxelPos'][i]] = labeled_voxel_data_frame['LabelID'][i]
-
-    volume_length = dimension[0]*dimension[1]*dimension[2]
-    f_init = np.zeros(shape=(11, volume_length), dtype=np.float)
-
-    for z in range(dimension[2]):
-        for y in range(dimension[1]):
-            for x in range(dimension[0]):
-                index = z*(dimension[1]*dimension[0]) + y*dimension[0] + x
-
+    f_init = np.zeros(shape=(11, volume_length), dtype=np.float32)
     # 4. add scalar feature
     f_init[0, :] = volume_raw_data
 
@@ -92,7 +65,6 @@ def main():
 
     # 6. add up, down, left, right, front, back features
     volume_raw_data_3d = np.array(volume_raw_data).reshape(dimension[::-1])
-
     up = np.zeros(dimension[::-1])
     up[0:dimension[2]-1, :, :] = volume_raw_data_3d[1:dimension[2], :, :]
     up[dimension[2]-1, :, :] = volume_raw_data_3d[0, :, :]
@@ -135,30 +107,63 @@ def main():
 
     # 9. normalize feature
     scaler = preprocessing.StandardScaler().fit(f_init)
-    # print(scaler.mean_)
-    # print(scaler.var_)
     f_init = scaler.transform(f_init)
-    # print(f_init[:10])
-    # print(res[:10])
 
     print(f_init.shape)
 
-    # 10. get train data
-    train_voxel_index_array = labeled_voxel_dict.keys()
-    train_data = []
-    train_label = []
-    for i in train_voxel_index_array:
-        train_data.append(list(f_init[i]))
-        train_label.append(labeled_voxel_dict[i])
-    x = np.array(train_data)
-    y = np.array(train_label, dtype=np.int)
+    return f_init
 
-    hp.label = len(set(y))
-    hp.labeled_node = len(y)
-    print('Number of all nodes : ', volume_length)
-    print('Number of labeled nodes : ', hp.labeled_node)
-    print('Number of trained labeled nodes : ', int(hp.labeled_node * hp.ratio))
-    print('Number of test labeled nodes : ', int(hp.labeled_node * (1 - hp.ratio)))
+def prepareLabeledData(hp, f_init):
+    labeled_voxel_volume = None
+    # for ground truth data
+    if hp.labeled_type == 2:
+        train_label_ratio = 0.001
+        labeled_voxel_file = hp.workspace + hp.labeled_file  # .label
+        labeled_voxel_file = hp.workspace + hp.groundtruth_label_voxel_file  # .raw
+        # labeled_voxel_volume = np.load(labeled_voxel_file).flatten()
+        labeled_voxel_volume = np.fromfile(labeled_voxel_file, dtype=np.int32)
+        print("Start random sample labeled voxels...")
+        import random
+        sample_index_array = random.sample(range(len(labeled_voxel_volume)),
+                                           int(len(labeled_voxel_volume)*train_label_ratio))
+        train_data = []
+        train_label = labeled_voxel_volume[sample_index_array]
+        for i in sample_index_array:
+            train_data.append(list(f_init[i]))
+        assert len(train_data) == len(train_label)
+    else:
+        # TODO
+        itk_snap_labeled_voxel_file = hp.workspace + hp.labeled_file
+        labeled_voxel_data_frame = pd.read_csv(itk_snap_labeled_voxel_file)
+        labeled_voxel_dict = dict()
+        for i in range(len(labeled_voxel_data_frame['VoxelPos'])):
+            labeled_voxel_dict[labeled_voxel_data_frame['VoxelPos'][i]] = labeled_voxel_data_frame['LabelID'][i]
+
+        train_voxel_index_array = labeled_voxel_dict.keys()
+        train_data = []
+        train_label = []
+        for i in train_voxel_index_array:
+            train_data.append(list(f_init[i]))
+            train_label.append(labeled_voxel_dict[i])
+
+    x = np.array(train_data)
+    y = np.array(train_label, dtype=np.int32)
+
+    return x, y, labeled_voxel_volume
+
+def main():
+
+    hp = parse_args()
+
+    f_init = initalVoxelFeatures(hp)
+    x, y, labeled_voxel_volume = prepareLabeledData(hp, f_init)
+
+    hp.label_type_number = len(set(y))
+    hp.labeled_node_number = len(y)
+    print('Number of all nodes : ', hp.dimension[0] * hp.dimension[1] * hp.dimension[2])
+    print('Number of labeled nodes : ', hp.labeled_node_number)
+    print('Number of trained labeled nodes : ', int(hp.labeled_node_number * hp.ratio))
+    print('Number of test labeled nodes : ', int(hp.labeled_node_number * (1 - hp.ratio)))
 
     train_data, test_data, train_label, test_label = train_test_split(x, y, random_state=1, train_size=hp.ratio,
                                                                       test_size=1-hp.ratio)  # sklearn.model_selection.
@@ -169,36 +174,48 @@ def main():
     type = ''
     print('Input the training model in one of :[\'rf (random forest)\', \'nn (neural network)\', \'svm\', \'knn\']:')
     predictions = None
+
     while True:
         type = input()
         time_start = time.time()
         if type == 'rf':
             predictions = rfModel(f_init, train_data, train_label, test_data, test_label)
-            break
+            predictions.tofile(hp.workspace+hp.voxel_based_rf_predict_file)
+            labelVoxel2Nii(hp, predictions, hp.voxel_based_rf_predict_file.split('.')[0]+'.nii')
+            # break
         elif type == 'nn':
             hp.vec_dim = 11
             predictions = nnModel(hp, f_init, train_data, train_label)
-            break
+            predictions.tofile(hp.workspace+hp.voxel_based_nn_predict_file)
+            labelVoxel2Nii(hp, predictions, hp.voxel_based_nn_predict_file.split('.')[0] + '.nii')
+            # break
         elif type == 'svm':
             predictions = svmModel(f_init, train_data, test_label, test_data, train_label)
-            break
+            predictions.tofile(hp.workspace+hp.voxel_based_svm_predict_file)
+            labelVoxel2Nii(hp, predictions, hp.voxel_based_svm_predict_file.split('.')[0] + '.nii')
+            # break
         elif type == 'knn':
             predictions = knnModel(f_init, train_data, train_label, test_data, test_label)
-            break
+            predictions.tofile(hp.workspace+hp.voxel_based_knn_predict_file)
+            labelVoxel2Nii(hp, predictions, hp.voxel_based_knn_predict_file.split('.')[0] + '.nii')
+            # break
         else:
             print('No train model named {}. Please input again.'.format(type))
+            continue
 
+        if hp.labeled_type == 2:
+            precision, recall, f1, acc = evaluationForVoxels(labeled_voxel_volume, predictions)
+            print("precision score : {}".format(precision))
+            print("recall score : {}".format(recall))
+            print("f1 score : {}".format(f1))
+            print("accuracy score : {}".format(acc))
 
-    print(predictions)
-    np.save(hp.predict_labeled_voxel_file, np.array(predictions))
-
-    time_end = time.time()
-    all_time = int(time_end - time_start)
-
-    hours = int(all_time / 3600)
-    minute = int((all_time - 3600 * hours) / 60)
-    print()
-    print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+        time_end = time.time()
+        all_time = int(time_end - time_start)
+        hours = int(all_time / 3600)
+        minute = int((all_time - 3600 * hours) / 60)
+        print()
+        print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
 
 if __name__ == '__main__':
     main()

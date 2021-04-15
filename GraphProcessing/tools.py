@@ -1,5 +1,6 @@
 import argparse
 import json
+import numpy as np
 def parse_args(description: str):
     parser = argparse.ArgumentParser(description=description)
 
@@ -46,15 +47,67 @@ def parse_args(description: str):
     args.labeled_graph_file = json_content["supervoxelgraph"]["labeled_graph_file"]
     args.labeled_type = json_content["supervoxelgraph"]["label_type"]
     args.labeled_file = json_content["supervoxelgraph"]["labeled_file"]
+    args.label_mask_file = json_content["supervoxelgraph"]["label_mask_file"]
 
     # model
     args.vector_dimension = json_content["model"]["vector_dimension"]
-    args.dimension = json_content["model"]["dimension"]
     args.epochs = json_content["model"]["epochs"]
     args.warmup_steps = json_content["model"]["warmup_steps"]
     args.label_type_number = json_content["model"]["label_type_number"]
     args.ratio = json_content["model"]["ratio"]
     args.node_embedding_file = json_content["model"]["node_embedding_file"]
+    args.groundtruth_label_supervoxel_file = json_content['model']['groundtruth_label_supervoxel_file']
+    args.groundtruth_label_voxel_file = json_content['model']['groundtruth_label_voxel_file']
+    args.predict_label_supervoxel_file = json_content['model']['predict_label_supervoxel_file']
+    args.predict_label_voxel_file = json_content['model']['predict_label_voxel_file']
+    args.predict_label_nii_file = json_content['model']['predict_label_nii_file']
 
     args.type = args.labeled_type
     return args
+
+
+def readVolumeRaw(file_name, dtype='uchar'):
+    if dtype == 'uchar' or dtype == 'unsigned char' or dtype == 'uint8':
+        return np.fromfile(file_name, dtype=np.uint8)
+    elif dtype == 'float':
+        return np.fromfile(file_name, dtype=np.float32)
+    elif dtype == 'ushort' or dtype == 'unsigned short' or dtype == 'uint16':
+        return np.fromfile(file_name, dtype=np.uint16)
+    elif dtype == 'int' or dtype == 'unsigned int' or dtype == 'uint32':
+        return np.fromfile(file_name, dtype=np.int)
+
+
+from numba import jit
+
+
+@jit
+def volumeSegmentation(label_supervoxel_array, supervoxel_id_array):
+    volume_voxel_based_array = np.zeros_like(supervoxel_id_array, dtype=np.int)
+
+    for i in range(supervoxel_id_array.shape[0]):
+        volume_voxel_based_array[i] = label_supervoxel_array[supervoxel_id_array[i]]
+        if i % 10000000 == 0:
+            print("Process supervoxel_id file to volume segmentation form : {:.2f}%".
+                  format(i * 100 / (len(supervoxel_id_array))))
+
+    return volume_voxel_based_array
+
+def labelVoxel2Nii(hp, label_voxel_array, save_file_name):
+    import SimpleITK
+    itk_img = SimpleITK.ReadImage(hp.workspace + hp.label_mask_file)
+    img_array = SimpleITK.GetArrayFromImage(itk_img)  # the array is arranged with [z, y, x]
+    # print(img_array.dtype, img_array.shape)
+    dimension = itk_img.GetSize()  # the dimension is arranged with [x, y, z]
+    origin = itk_img.GetOrigin()
+    direction = itk_img.GetDirection()
+    space = itk_img.GetSpacing()
+
+    save_nii_img = SimpleITK.GetImageFromArray(label_voxel_array.copy().
+                                               reshape(dimension[::-1]).astype(img_array.dtype))
+    save_nii_img.SetOrigin(origin)
+    save_nii_img.SetDirection(direction)
+    save_nii_img.SetSpacing(space)
+
+    nii_gz_file_name = hp.workspace + save_file_name
+    SimpleITK.WriteImage(save_nii_img, nii_gz_file_name)
+    print("predicted voxel array has been saved in nii form")

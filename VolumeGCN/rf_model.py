@@ -10,6 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
+import time
 
 import sys
 import os
@@ -77,6 +78,7 @@ def main():
 
 
 def rfModel(f_init, train_data, train_label, test_data, test_label):
+    time_start = time.time()
     # 随机森林
     clf = RandomForestClassifier(n_estimators=40, max_features=0.1, criterion='entropy', max_depth=None,
                                  min_samples_split=2,
@@ -102,9 +104,16 @@ def rfModel(f_init, train_data, train_label, test_data, test_label):
     print("precision score : {}".format(precision_sorce))
     print("recall score : {}".format(recall_score))
     print("f1 score : {}".format(f1_score))
-    print("All predict result : ")
+
+    time_end = time.time()
+    print("Training time for rf : {}s".format(time_end-time_start))
+
+    # print("All predict result : ")
     predictions = clf.predict(f_init)
-    return predictions
+
+    print("Predicting time for rf : {}s".format(time.time() - time_end))
+
+    return predictions.flatten().astype(np.int32)
 
 
 def parameterSelect(train_data, train_label):

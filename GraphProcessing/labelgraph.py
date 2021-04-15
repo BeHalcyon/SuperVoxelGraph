@@ -74,6 +74,18 @@ def addLabelForGraph(G, label_csv_file, labeled_volume_file_name: str):
 #
 #     return label_type_number
 
+def loadNiiFile(file_name):
+    import SimpleITK
+    itk_img = SimpleITK.ReadImage(file_name)
+    img_array = SimpleITK.GetArrayFromImage(itk_img)  # the array is arranged with [z, y, x]
+    # print(img_array.dtype, img_array.shape)
+    dimension = itk_img.GetSize()  # the dimension is arranged with [x, y, z]
+    origin = itk_img.GetOrigin()
+    direction = itk_img.GetDirection()
+    space = itk_img.GetSpacing()
+
+    return img_array.flatten().astype(np.int32)
+
 if __name__ == "__main__":
     start = time.clock()
 
@@ -92,12 +104,65 @@ if __name__ == "__main__":
 
 
     if hp.type == 1:
-        print('Loading combined csv labeled file...')
+        print('Loading labeled nii.gz/nii file from ITK-SNAP...')
         labeled_voxel_file = workspace + hp.labeled_file
-        labeled_int_volume_file = workspace + hp.label_file
-        if os.path.exists(labeled_voxel_file):
-            label_type_number = addLabelForGraph(G, labeled_voxel_file, labeled_int_volume_file)
-            print('The number of labeled type: {}'.format(label_type_number))
+        # Warning: one should label volume in itk-snap and export the mask nii file, then update the json configure file.
+        labeled_voxel_array = loadNiiFile(labeled_voxel_file)
+        # 0 is unlabeled voxel. The value larger than 0 is available.
+        print(max(labeled_voxel_array), min(labeled_voxel_array))
+        supervoxel_id_array = np.fromfile(workspace + hp.supervoxel_id_file, dtype=np.int32).flatten()
+        assert max(supervoxel_id_array) + 1 == len(G.nodes())
+        assert supervoxel_id_array.shape == labeled_voxel_array.shape
+        # create a dictionary to store the supervoxel ids and their type
+        labeled_supervoxel_dict = {}
+        # update the dictionary
+        for i in range(supervoxel_id_array.shape[0]):
+            if labeled_voxel_array[i] != 0:
+                if supervoxel_id_array[i] in labeled_supervoxel_dict.keys():
+                    labeled_supervoxel_dict[supervoxel_id_array[i]].append(labeled_voxel_array[i]-1)
+                else:
+                    labeled_supervoxel_dict[supervoxel_id_array[i]] = [labeled_voxel_array[i]-1]
+
+        for i in range(len(G.nodes())):
+            if i not in labeled_supervoxel_dict.keys():
+                labeled_supervoxel_dict[i] = [-1]
+        # count the ambiguous super-voxels
+        ambiguous_supervoxel_number = 0
+        ground_truth_supervoxel_label_array = np.zeros(len(labeled_supervoxel_dict.keys()), dtype=np.int32)
+        # update the node type.
+        for key, value in labeled_supervoxel_dict.items():
+            v = -1
+            # print(key, value, v)
+            if len(set(value)) > 1:
+                buf = np.bincount(value) / len(value)
+                for i in range(len(buf)):
+                    if buf[i] >= 0.5:
+                        v = i
+                        continue
+                if v == -1:
+                    ambiguous_supervoxel_number += 1
+            else:
+                v = value[0]
+            labeled_supervoxel_dict[key] = v
+            G.nodes[str(key)]['cls'] = v
+            ground_truth_supervoxel_label_array[key] = v
+
+        np.save(hp.workspace + hp.groundtruth_label_supervoxel_file, ground_truth_supervoxel_label_array)
+
+        # count the number
+        ls = list(labeled_supervoxel_dict.values())
+        ls2 = list(labeled_voxel_array)
+        # label_type_set = set(labeled_supervoxel_dict.values())
+        for i in set(labeled_supervoxel_dict.values()):
+            print("Type id : {}, supervoxel Number : {}, voxel_number : {}".format(i, ls.count(i), ls2.count(i+1)))
+        print("labeled supervoxel proportion : {:.2f}%".format((1-(ls.count(-1))/len(ls))*100))
+        print("labeled voxel proportion : {:.2f}%".format((1-(ls2.count(0))/len(ls2))*100))
+        print("Ambiguous supervoxel number : {}, proportion : {:.2f}%".format(ambiguous_supervoxel_number,
+                                                                              ambiguous_supervoxel_number * 100 / len(
+                                                                                  ls)))
+        print("Average number of voxels in a supervoxel : {:.2f}".format(
+            len(labeled_voxel_array) / len(labeled_supervoxel_dict)))
+
     elif hp.type == 0:
         print('Loading combined csv labeled file from itk SNAP tool...')
         itk_snap_labeled_voxel_file = workspace + hp.labeled_file
@@ -142,21 +207,33 @@ if __name__ == "__main__":
             # count the ambiguous super-voxels
             ambiguous_supervoxel_number = 0
             voxel_number_in_supervoxel_list = []
+            ground_truth_supervoxel_label_array = np.zeros(len(labeled_supervoxel_dict.keys()), dtype=np.int32)
             # update the node type.
             for key, value in labeled_supervoxel_dict.items():
-                v = np.argmax(np.bincount(np.array(value)))
+                v = -1
                 # print(key, value, v)
                 if len(set(value)) > 1:
-                    ambiguous_supervoxel_number += 1
+                    buf = np.bincount(value)/len(value)
+                    for i in range(len(buf)):
+                        if buf[i] >= 0.5:
+                            v = i
+                            continue
+                    if v == -1:
+                        ambiguous_supervoxel_number += 1
+                else:
+                    v = value[0]
                 labeled_supervoxel_dict[key] = v
                 voxel_number_in_supervoxel_list.append(len(value))
                 # G.add_node(key, cls=v)
                 G.nodes[str(key)]['cls'] = v
+                ground_truth_supervoxel_label_array[key] = v
+
+            np.save(hp.workspace + hp.groundtruth_label_supervoxel_file, ground_truth_supervoxel_label_array)
 
             # count the number
             ls = list(labeled_supervoxel_dict.values())
-            label_type_number = len(set(labeled_supervoxel_dict.values()))
-            for i in range(label_type_number):
+            # label_type_set = set(labeled_supervoxel_dict.values())
+            for i in set(labeled_supervoxel_dict.values()):
                 print("Type id : {}, supervoxel Number : {}".format(i, ls.count(i)))
             print("Ambiguous supervoxel number : {}, proportion : {:.2f}%".format(ambiguous_supervoxel_number,
                                                                                   ambiguous_supervoxel_number*100/len(ls)))

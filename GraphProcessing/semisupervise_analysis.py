@@ -7,7 +7,7 @@
 import argparse
 import json
 import time
-
+from tools import *
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Translate the predict result to segmented result.")
@@ -60,15 +60,7 @@ def readVifo(file_name):
         return volume_number, volume_type, dimension, space, raw_file_name
 
 
-def readVolumeRaw(file_name, dtype='uchar'):
-    if dtype == 'uchar':
-        return np.fromfile(file_name, dtype=np.uint8)
-    elif dtype == 'float':
-        return np.fromfile(file_name, dtype=np.float32)
-    elif dtype == 'ushort':
-        return np.fromfile(file_name, dtype=np.uint16)
-    elif dtype == 'int':
-        return np.fromfile(file_name, dtype=np.int)
+
 
 
 if __name__ == "__main__":
@@ -77,47 +69,63 @@ if __name__ == "__main__":
     f = open(hp.configure_file)
     json_content = json.load(f)
 
-    file_prefix = json_content["data_path"]["file_prefix"]
-    label_raw_file = file_prefix + json_content["file_name"]["label_file"]
-    labeled_gexf_file = file_prefix + json_content["file_name"]["labeled_graph_file"]
+    workspace = json_content["workspace"]
+    supervoxel_id_file = json_content["volume2supervoxel"]["supervoxel_id_file"]
+    volume_file = json_content["volumes"]["file_names"][0]
+    dtype = json_content["volumes"]["dtype"]
+
+    # file_prefix = json_content["data_path"]["file_prefix"]
+    # label_raw_file = file_prefix + json_content["file_name"]["label_file"]
+    # labeled_gexf_file = file_prefix + json_content["file_name"]["labeled_graph_file"]
 
     # read vifo file
-    vifo_file = json_content["data_path"]["vifo_file"]
-    volume_number, volume_type, dimension, space, raw_file_name = readVifo(vifo_file)
+    # vifo_file = json_content["data_path"]["vifo_file"]
+    # volume_number, volume_type, dimension, space, raw_file_name = readVifo(vifo_file)
 
     # read origin raw file
-    vifo_file_path = vifo_file[:vifo_file.rfind('/') + 1]
-    volume_raw_data = readVolumeRaw(vifo_file_path + raw_file_name, volume_type)
+    # vifo_file_path = vifo_file[:vifo_file.rfind('/') + 1]
+    volume_raw_data = readVolumeRaw(json_content['volumes']['file_path'] + volume_file, dtype)
 
     # read label int file
-    label_int_data = readVolumeRaw(label_raw_file, 'int')
+    label_int_data = readVolumeRaw(workspace + supervoxel_id_file, 'int')
 
-    semisupervise_result_file = file_prefix + json_content['file_name']['predict_labeled_supervoxel_file']
+    # TODO
+    semisupervise_result_file = workspace + json_content['model']['predict_label_supervoxel_file']
     labels = np.load(semisupervise_result_file)
+    # labels = np.load(workspace + json_content['model']['groundtruth_label_supervoxel_file'])
 
 
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)  # 获取分簇的数目
     print("Number of labeled type : {}".format(n_clusters_))
     print("Max labeled type id : {}".format(max(set(labels))))
 
-    for i in range(0, max(set(labels))+1):
-        buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)
-        buf_index_array = np.array(np.where(labels == i))
-        label_number = len(buf_index_array[0])
+    # do segmentation for volume.
+    if False:
+        for i in range(0, max(set(labels)) + 1):
+            buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)
+            buf_index_array = np.array(np.where(labels == i))
+            label_number = len(buf_index_array[0])
 
-        for j in buf_index_array[0]:
-            buf = np.where(label_int_data == j)
-            # print(buf)
-            buf_volume_array[buf] = volume_raw_data[buf]
-        if len(buf_index_array[0]) > 0:
-            buf_volume_array.tofile(
-                file_prefix + str(label_number) + '_part_' + str(i) + '.raw')
-            print("Cluster {} in {} has {} labels, and it has been saved.".format(i, n_clusters_, label_number))
+            for j in buf_index_array[0]:
+                buf = np.where(label_int_data == j)
+                # print(buf)
+                buf_volume_array[buf] = volume_raw_data[buf]
 
+                if j % 100 == 0:
+                    print("Process of indexing the index of predicted labels' voxels : {:.2f}%".format(
+                        j * 100 / (len(buf_index_array[0]))))
+
+            if len(buf_index_array[0]) > 0:
+                buf_volume_array.tofile(
+                    workspace + str(label_number) + '_part_' + str(i) + '.raw')
+                print("Cluster {} in {} has {} labels, and it has been saved.".format(i, n_clusters_, label_number))
+
+    # transfer predict volumes to voxel form.
+    voxel_based_segmentation_array = volumeSegmentation(labels, label_int_data)
+    voxel_based_segmentation_array.tofile(workspace + json_content['model']['predict_label_voxel_file'])
     time_end = time.time()
     all_time = int(time_end - time_start)
 
     hours = int(all_time / 3600)
     minute = int((all_time - 3600 * hours) / 60)
     print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
-
