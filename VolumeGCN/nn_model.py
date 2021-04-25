@@ -134,7 +134,7 @@ def nnModel(hp, f_init, train_data, train_label):
     print(predictions)
     print("Predicting time for rf : {}s".format(time.time() - time_end))
 
-    return predictions.flatten().astype(np.int32)
+    return predictions.flatten().astype(np.int32), time_end-time_start
 
 
 if __name__ == '__main__':

@@ -97,6 +97,10 @@ def Graphs(hp):
     G = nx.read_gexf(hp.dataset)
     return G
 
+def saveGraphs(file_name):
+
+    G = nx.read_gexf(hp.dataset)
+    return G
 
 from sklearn.metrics import f1_score, precision_score, recall_score
 def metricMeasure(y_true, y_pred):

@@ -99,14 +99,14 @@ def knnModel(f_init, train_data, train_label, test_data, test_label):
     if f_init.shape[0] < 1e5:
         predict_result = knn.predict(f_init)
         print("Predicting time for rf : {}s".format(time.time() - time_end))
-        return predict_result.flatten().astype(np.int32)
+        return predict_result.flatten().astype(np.int32), time_end-time_start
 
     batch_size = 4196
     batch_number = (f_init.shape[0]+batch_size-1)//batch_size
     predict_result = np.zeros(f_init.shape[0], dtype=np.int32)
     for i in range(batch_number):
         if i % 50 == 0:
-            print('Processing svm prediction: {:.2f}%'.format(i*100/(batch_number-1)))
+            print('Processing knn prediction: {:.2f}%'.format(i*100/(batch_number-1)))
         end_pos = (i+1)*batch_size
         if i == batch_number - 1:
             end_pos = f_init.shape[0]
@@ -115,7 +115,7 @@ def knnModel(f_init, train_data, train_label, test_data, test_label):
     # predict_result = classifier.predict(f_init)
     print("Predicting time for rf : {}s".format(time.time() - time_end))
 
-    return predict_result.flatten().astype(np.int32)
+    return predict_result.flatten().astype(np.int32), time_end-time_start
 
 
     # predict all results
@@ -124,7 +124,7 @@ def knnModel(f_init, train_data, train_label, test_data, test_label):
     print(predictions2)
     print("Predicting time for rf : {}s".format(time.time() - time_end))
 
-    return predictions2.flatten().astype(np.int32)
+    return predictions2.flatten().astype(np.int32), time_end-time_start
 
 
 def parameterSelect(test_data, test_label, train_data, train_label):

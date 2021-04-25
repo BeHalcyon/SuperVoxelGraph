@@ -16,7 +16,7 @@ import random
 import os
 import numpy as np
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
 
 import random
 
@@ -78,7 +78,7 @@ def main():
         all_nodes_number = node_num
 
         all_nodes = [n for n in range(node_num)]
-        train_set_number = int(all_nodes_number * 0.2)
+        train_set_number = int(all_nodes_number * 0.5)
 
         type_number = int(ground_truth_array.max()) + 1
         # the number of train set for each type, sample average
@@ -157,8 +157,9 @@ def main():
     saver = tf.train.Saver()  # generate saver
 
     config = tf.ConfigProto(
-        allow_soft_placement=True)  # if the chosen device is not existed, tf can automatically distributes equipment
+        allow_soft_placement = True, log_device_placement = True)  # if the chosen device is not existed, tf can automatically distributes equipment
     config.gpu_options.allow_growth = True  # allocate memory dynamically
+    config.gpu_options.per_process_gpu_memory_fraction = 0.9
 
     with tf.Session(config=config) as sess:
         sess.run(tf.global_variables_initializer())
@@ -220,6 +221,12 @@ def main():
 
         saver.save(sess, "model/" + cur_time)
 
+        import networkx as nx
+        for n in range(node_num):
+            G.nodes[str(n)]['cls'] = _pre2[0][n]
+        nx.write_gexf(G, hp.workspace + hp.labeled_graph_file.split('.')[0] + "_predcited.gexf")
+        print("predicted SuperGraph has been saved.")
+
         # print("Fin AUC score is : ", metrics.auc(dyu, _pre[0])) # tf不支持多分类，得另外写
     time_end = time.time()
     all_time = int(time_end - time_start)
@@ -227,6 +234,7 @@ def main():
     hours = int(all_time / 3600)
     minute = int((all_time - 3600 * hours) / 60)
     print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+
 
 
 if __name__ == '__main__':

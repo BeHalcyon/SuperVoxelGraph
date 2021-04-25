@@ -59,6 +59,7 @@ class Volume_GCN:
 
         #半监督部分
         xs_emb = tf.squeeze(tf.nn.embedding_lookup(hidden_features, xs))
+        # logits1 = tf.layers.dense(xs_emb, 128, activation="relu", name="classifer1", reuse=tf.AUTO_REUSE)
         logits = tf.layers.dense(xs_emb, self.hp.label, activation=None, name="classifer", reuse=tf.AUTO_REUSE)
         labels = tf.one_hot(ys, self.hp.label, axis=1)
         loss = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels)

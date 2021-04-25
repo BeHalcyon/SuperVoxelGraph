@@ -113,7 +113,7 @@ def rfModel(f_init, train_data, train_label, test_data, test_label):
 
     print("Predicting time for rf : {}s".format(time.time() - time_end))
 
-    return predictions.flatten().astype(np.int32)
+    return predictions.flatten().astype(np.int32), time_end-time_start
 
 
 def parameterSelect(train_data, train_label):

@@ -100,6 +100,8 @@ if __name__ == "__main__":
     print("Max labeled type id : {}".format(max(set(labels))))
 
     # do segmentation for volume.
+
+
     if False:
         for i in range(0, max(set(labels)) + 1):
             buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)

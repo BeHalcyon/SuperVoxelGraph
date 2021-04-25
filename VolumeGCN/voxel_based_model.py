@@ -14,6 +14,8 @@ from svm_model import svmModel
 
 from sklearn.model_selection import train_test_split
 from args import *
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
 
 # def parse_args():
 #     parser = argparse.ArgumentParser(description="Do voxel-based model.")
@@ -117,7 +119,7 @@ def prepareLabeledData(hp, f_init):
     labeled_voxel_volume = None
     # for ground truth data
     if hp.labeled_type == 2:
-        train_label_ratio = 0.001
+        train_label_ratio = 0.0001
         labeled_voxel_file = hp.workspace + hp.labeled_file  # .label
         labeled_voxel_file = hp.workspace + hp.groundtruth_label_voxel_file  # .raw
         # labeled_voxel_volume = np.load(labeled_voxel_file).flatten()
@@ -132,20 +134,23 @@ def prepareLabeledData(hp, f_init):
             train_data.append(list(f_init[i]))
         assert len(train_data) == len(train_label)
     else:
-        # TODO
-        itk_snap_labeled_voxel_file = hp.workspace + hp.labeled_file
-        labeled_voxel_data_frame = pd.read_csv(itk_snap_labeled_voxel_file)
-        labeled_voxel_dict = dict()
-        for i in range(len(labeled_voxel_data_frame['VoxelPos'])):
-            labeled_voxel_dict[labeled_voxel_data_frame['VoxelPos'][i]] = labeled_voxel_data_frame['LabelID'][i]
 
-        train_voxel_index_array = labeled_voxel_dict.keys()
+        labeled_voxel_file = hp.workspace + hp.labeled_file  # .label
+        import SimpleITK
+        itk_img = SimpleITK.ReadImage(labeled_voxel_file)
+        labeled_voxel_volume = np.array(SimpleITK.GetArrayFromImage(itk_img)).flatten()  # the array is arranged with [z, y, x]
+
+        train_index = np.array(np.where(labeled_voxel_volume>0))[0]
+        print(labeled_voxel_volume)
+        print(len(train_index))
+        np.random.shuffle(train_index)
+        train_index = train_index[:int(len(train_index)*0.06)]
         train_data = []
         train_label = []
-        for i in train_voxel_index_array:
+        for i in train_index:
             train_data.append(list(f_init[i]))
-            train_label.append(labeled_voxel_dict[i])
-
+            train_label.append(labeled_voxel_volume[i]-1)
+        assert len(train_data) == len(train_label)
     x = np.array(train_data)
     y = np.array(train_label, dtype=np.int32)
 
@@ -174,34 +179,45 @@ def main():
     type = ''
     print('Input the training model in one of :[\'rf (random forest)\', \'nn (neural network)\', \'svm\', \'knn\']:')
     predictions = None
+    volume_raw_data = readVolumeRaw(hp.file_path + hp.file_names[0], hp.dtype)
+    types = ['rf', 'nn', 'svm', 'knn']
+    logger = logger_config(hp.workspace + "metric_log.txt")
+    for type in types:
 
-    while True:
-        type = input()
+    # while True:
+    #     type = input()
         time_start = time.time()
         if type == 'rf':
-            predictions = rfModel(f_init, train_data, train_label, test_data, test_label)
+            predictions, training_time = rfModel(f_init, train_data, train_label, test_data, test_label)
             predictions.tofile(hp.workspace+hp.voxel_based_rf_predict_file)
-            labelVoxel2Nii(hp, predictions, hp.voxel_based_rf_predict_file.split('.')[0]+'.nii')
+            labelVoxel2Nii(hp, predictions+1, hp.voxel_based_rf_predict_file.split('.')[0]+'.nii')
             # break
         elif type == 'nn':
             hp.vec_dim = 11
-            predictions = nnModel(hp, f_init, train_data, train_label)
+            predictions, training_time = nnModel(hp, f_init, train_data, train_label)
             predictions.tofile(hp.workspace+hp.voxel_based_nn_predict_file)
-            labelVoxel2Nii(hp, predictions, hp.voxel_based_nn_predict_file.split('.')[0] + '.nii')
+            labelVoxel2Nii(hp, predictions+1, hp.voxel_based_nn_predict_file.split('.')[0] + '.nii')
             # break
         elif type == 'svm':
-            predictions = svmModel(f_init, train_data, test_label, test_data, train_label)
+            predictions, training_time = svmModel(f_init, train_data, test_label, test_data, train_label)
             predictions.tofile(hp.workspace+hp.voxel_based_svm_predict_file)
-            labelVoxel2Nii(hp, predictions, hp.voxel_based_svm_predict_file.split('.')[0] + '.nii')
+            labelVoxel2Nii(hp, predictions+1, hp.voxel_based_svm_predict_file.split('.')[0] + '.nii')
             # break
         elif type == 'knn':
-            predictions = knnModel(f_init, train_data, train_label, test_data, test_label)
+            predictions, training_time = knnModel(f_init, train_data, train_label, test_data, test_label)
             predictions.tofile(hp.workspace+hp.voxel_based_knn_predict_file)
-            labelVoxel2Nii(hp, predictions, hp.voxel_based_knn_predict_file.split('.')[0] + '.nii')
+            labelVoxel2Nii(hp, predictions+1, hp.voxel_based_knn_predict_file.split('.')[0] + '.nii')
             # break
         else:
             print('No train model named {}. Please input again.'.format(type))
             continue
+
+        time_end = time.time()
+        all_time = int(time_end - time_start)
+        hours = int(all_time / 3600)
+        minute = int((all_time - 3600 * hours) / 60)
+        print()
+        print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
 
         if hp.labeled_type == 2:
             precision, recall, f1, acc = evaluationForVoxels(labeled_voxel_volume, predictions)
@@ -210,12 +226,24 @@ def main():
             print("f1 score : {}".format(f1))
             print("accuracy score : {}".format(acc))
 
-        time_end = time.time()
-        all_time = int(time_end - time_start)
-        hours = int(all_time / 3600)
-        minute = int((all_time - 3600 * hours) / 60)
-        print()
-        print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+            # logger = logger_config(hp.workspace + "metric_log.txt")
+            logger.info("voxelbased-{}: precision: {}, recall: {}, f1: {}, accuracy : {}, time : {}".
+                        format(type, precision, recall, f1, acc, training_time))
+        else:
+            for i in range(hp.label_type_number):
+                buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)
+                buf_index_array = np.array(np.where(predictions == i))
+                label_number = len(buf_index_array[0])
+
+                for j in buf_index_array[0]:
+                    buf_volume_array[j] = volume_raw_data[j]
+
+                if label_number > 0:
+                    buf_volume_array.tofile(
+                        hp.workspace + type + '_' + 'feature_part_' + str(i) +'voxel_number_' + str(label_number) + '.raw')
+                    print("{}: Cluster {} in {} has {} labels, and it has been saved."
+                          .format(type, i, hp.label_type_number, label_number))
+
 
 if __name__ == '__main__':
     main()

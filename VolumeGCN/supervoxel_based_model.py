@@ -122,17 +122,20 @@ def main():
     # read label int file
     label_int_data = np.fromfile(hp.workspace+hp.supervoxel_id_file, dtype=np.int32)
 
-    while True:
-        type = input()
+    logger = logger_config(hp.workspace + "metric_log.txt")
+    types = ['rf', 'nn', 'svm', 'knn']
+    for type in types:
+    # while True:
+    #     type = input()
         saved_voxel_based_predict_file = None
         time_start = time.time()
         if type == 'rf':
-            predictions = rfModel(f_init, train_data, train_label, test_data, test_label) # this prediction is supervoxel-based label array
+            predictions, training_time = rfModel(f_init, train_data, train_label, test_data, test_label) # this prediction is supervoxel-based label array
             saved_voxel_based_predict_file = hp.supervoxel_based_rf_predict_file
             # break
         elif type == 'nn':
             # hp.vec_dim = 256
-            predictions = nnModel(hp, f_init, train_data, train_label)
+            predictions, training_time = nnModel(hp, f_init, train_data, train_label)
             saved_voxel_based_predict_file = hp.supervoxel_based_nn_predict_file
 
             # voxel_based_predictions = volumeSegmentation(predictions, label_int_data)
@@ -140,7 +143,7 @@ def main():
             # labelVoxel2Nii(hp, voxel_based_predictions, hp.voxel_based_nn_predict_file.split('.')[0] + '.nii')
             # break
         elif type == 'svm':
-            predictions = svmModel(f_init, train_data, test_label, test_data, train_label)
+            predictions, training_time = svmModel(f_init, train_data, test_label, test_data, train_label)
             saved_voxel_based_predict_file = hp.supervoxel_based_svm_predict_file
 
             # voxel_based_predictions = volumeSegmentation(predictions, label_int_data)
@@ -148,7 +151,7 @@ def main():
             # labelVoxel2Nii(hp, voxel_based_predictions, hp.voxel_based_svm_predict_file.split('.')[0] + '.nii')
             # break
         elif type == 'knn':
-            predictions = knnModel(f_init, train_data, train_label, test_data, test_label)
+            predictions, training_time = knnModel(f_init, train_data, train_label, test_data, test_label)
             saved_voxel_based_predict_file = hp.supervoxel_based_knn_predict_file
 
             # voxel_based_predictions = volumeSegmentation(predictions, label_int_data)
@@ -164,6 +167,13 @@ def main():
         voxel_based_predictions.tofile(hp.workspace + saved_voxel_based_predict_file)
         labelVoxel2Nii(hp, voxel_based_predictions, saved_voxel_based_predict_file.split('.')[0] + '.nii')
 
+        time_end = time.time()
+        all_time = int(time_end - time_start)
+        hours = int(all_time / 3600)
+        minute = int((all_time - 3600 * hours) / 60)
+        print()
+        print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+
         if hp.labeled_type == 2:
             precision, recall, f1, acc = evaluationForVoxels(groundtruth_supervoxel_label_array, predictions)
             print("precision score : {}".format(precision))
@@ -171,12 +181,11 @@ def main():
             print("f1 score : {}".format(f1))
             print("accuracy score : {}".format(acc))
 
-        time_end = time.time()
-        all_time = int(time_end - time_start)
-        hours = int(all_time / 3600)
-        minute = int((all_time - 3600 * hours) / 60)
-        print()
-        print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
+
+            logger.info("supervoxelbased-{}: precision: {}, recall: {}, f1: {}, accuracy : {}, time : {}".
+                        format(type, precision, recall, f1, acc, training_time))
+
+
 
 
 if __name__ == '__main__':

@@ -738,7 +738,7 @@ void SLIC3D::DrawContoursAroundSegments(
 						}
 					}
 				}
-				if (np > 7)//change to 3 or 5 for thinner lines
+				if (np > 8)//change to 3 or 5 for thinner lines
 				{
 					ubuff[main_index] = boundary_value;
 					is_taken[main_index] = true;

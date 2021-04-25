@@ -1,3 +1,4 @@
+# encoding: utf-8
 import argparse
 import json
 from numba import jit
@@ -153,7 +154,10 @@ def parse_args():
 
 def labelVoxel2Nii(hp, label_voxel_array, save_file_name):
     import SimpleITK
-    itk_img = SimpleITK.ReadImage(hp.workspace + hp.label_mask_file)
+    if hp.type == 2:
+        itk_img = SimpleITK.ReadImage(hp.workspace + hp.label_mask_file)
+    else:
+        itk_img = SimpleITK.ReadImage(hp.workspace + hp.labeled_file)
     img_array = SimpleITK.GetArrayFromImage(itk_img)  # the array is arranged with [z, y, x]
     # print(img_array.dtype, img_array.shape)
     dimension = itk_img.GetSize()  # the dimension is arranged with [x, y, z]
@@ -191,3 +195,22 @@ def volumeSegmentation(label_supervoxel_array, supervoxel_id_array):
                   format(i * 100 / (len(supervoxel_id_array))))
 
     return volume_voxel_based_array
+
+
+def logger_config(log_path,logging_name="supervoxelgraph"):
+    import logging
+    logger = logging.getLogger(logging_name)
+    logger.setLevel(logging.INFO)
+    fh = logging.FileHandler(log_path)
+    fh.setLevel(logging.INFO)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(
+        '[%(asctime)s][%(thread)d][%(filename)s][line: %(lineno)d][%(levelname)s] ## %(message)s')
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+    return logger

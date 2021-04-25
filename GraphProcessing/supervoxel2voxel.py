@@ -6,9 +6,13 @@ import numpy as np
 
 if __name__ == "__main__":
     time_start = time.time()
+
+
     hp = parse_args("SupervoxelGraph --- Supervoxel to voxel")
     f = open(hp.configure_file)
     json_content = json.load(f)
+
+
 
     workspace = json_content["workspace"]
     supervoxel_id_file = json_content["volume2supervoxel"]["supervoxel_id_file"]
@@ -19,7 +23,6 @@ if __name__ == "__main__":
     volume_raw_data = readVolumeRaw(json_content['volumes']['file_path'] + volume_file, dtype)
     # read label int file
     label_int_data = readVolumeRaw(workspace + supervoxel_id_file, 'int')
-
 
 
     # transfer predict volumes to voxel form.
@@ -41,8 +44,10 @@ if __name__ == "__main__":
         predict_voxel_based_segmentation_array.tofile(workspace + json_content['model']['predict_label_voxel_file'])
         print("predicted supervoxel array has been saved in voxel form ")
 
-        labelVoxel2Nii(hp, predict_voxel_based_segmentation_array, hp.predict_label_nii_file)
+        labelVoxel2Nii(hp, predict_voxel_based_segmentation_array+1, hp.predict_label_nii_file)
 
+
+        # analysis for groundtruth. generation of groundtruth labeled voxel fraw file.
     if hp.labeled_type == 2:
         # groundtruth labels
         groundtruth_label_supervoxel_file = workspace + json_content['model']['groundtruth_label_supervoxel_file']
@@ -73,8 +78,37 @@ if __name__ == "__main__":
         print("Voxel recall score : {}".format(recall_score))
         print("Voxel F1 score : {}".format(f1_score))
         from sklearn import metrics
-        print("voxel accuracy socre : {}".format( metrics.accuracy_score(predict_voxel_based_segmentation_array,
-                                                                         groundtruth_voxel_based_segmentation_array)))
+        acc = metrics.accuracy_score(predict_voxel_based_segmentation_array,
+                                                                         groundtruth_voxel_based_segmentation_array)
+        print("voxel accuracy socre : {}".format( acc))
+
+        logger = logger_config(hp.workspace+"metric_log.txt")
+        logger.info("supervoxelgraph: precision: {}, recall: {}, f1: {}, accuracy : {}".format(precision_sorce, recall_score, f1_score, acc))
+
+
+    # do feature classification for different classes.
+    else:
+        for i in range(n_clusters_):
+            buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)
+            buf_index_array = np.array(np.where(predict_voxel_based_segmentation_array == i))
+            label_number = len(buf_index_array[0])
+
+            for j in buf_index_array[0]:
+                buf_volume_array[j] = volume_raw_data[j]
+
+            # for j in buf_index_array[0]:
+            #     buf = np.where(label_int_data == j)
+            #     # print(buf)
+            #     buf_volume_array[buf] = volume_raw_data[buf]
+            #
+            #     if j % 100 == 0:
+            #         print("Process of indexing the index of predicted labels' voxels : {:.2f}%".format(
+            #             j * 100 / (len(buf_index_array[0]))))
+
+            if label_number > 0:
+                buf_volume_array.tofile(
+                    workspace + 'feature_part_' + str(i) +'voxel_number_' + str(label_number) + '.raw')
+                print("Cluster {} in {} has {} labels, and it has been saved.".format(i, n_clusters_, label_number))
 
 
     time_end = time.time()
@@ -84,25 +118,5 @@ if __name__ == "__main__":
     minute = int((all_time - 3600 * hours) / 60)
     print('totally cost  :  ', hours, 'h', minute, 'm', all_time - hours * 3600 - 60 * minute, 's')
 
-    # do segmentation for volume.
-    if False:
-        for i in range(0, max(set(voxel_based_segmentation_array)) + 1):
-            buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)
-            buf_index_array = np.array(np.where(voxel_based_segmentation_array == i))
-            label_number = len(buf_index_array[0])
-
-            for j in buf_index_array[0]:
-                buf = np.where(label_int_data == j)
-                # print(buf)
-                buf_volume_array[buf] = volume_raw_data[buf]
-
-                if j % 100 == 0:
-                    print("Process of indexing the index of predicted labels' voxels : {:.2f}%".format(
-                        j * 100 / (len(buf_index_array[0]))))
-
-            if len(buf_index_array[0]) > 0:
-                buf_volume_array.tofile(
-                    workspace + str(label_number) + '_part_' + str(i) + '.raw')
-                print("Cluster {} in {} has {} labels, and it has been saved.".format(i, n_clusters_, label_number))
 
 

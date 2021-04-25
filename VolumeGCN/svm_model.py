@@ -140,7 +140,7 @@ def svmModel(f_init, train_data, test_label, test_data, train_label):
     if f_init.shape[0] < 1e5:
         predict_result = classifier.predict(f_init)
         print("Predicting time for rf : {}s".format(time.time() - time_end))
-        return predict_result.flatten().astype(np.int32)
+        return predict_result.flatten().astype(np.int32), time_end-time_start
 
     # # multiprocessing
     # import multiprocessing
@@ -182,7 +182,7 @@ def svmModel(f_init, train_data, test_label, test_data, train_label):
     # predict_result = classifier.predict(f_init)
     print("Predicting time for rf : {}s".format(time.time() - time_end))
 
-    return predict_result.flatten().astype(np.int32)
+    return predict_result.flatten().astype(np.int32), time_end-time_start
 
 
 if __name__ == '__main__':
