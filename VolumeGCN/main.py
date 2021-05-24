@@ -16,7 +16,7 @@ import random
 import os
 import numpy as np
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 import random
 
@@ -187,6 +187,8 @@ def main():
         print(_pre[0])
         print("truth_result : ")
         print(dyu)
+        end_time = time.time()
+        print("====================training time : {:.2f}".format(end_time-time2))
 
         precision_sorce, recall_score, f1_score = metricMeasure(dyu, _pre[0])
         print("precision score : {}".format(precision_sorce))
@@ -205,6 +207,8 @@ def main():
         print("All predict result : ")
         print(_pre2[0])
         np.save(hp.predict_labeled_supervoxel_file, np.array(_pre2[0]))
+
+        print("====================predicting time : {:.2f}".format(time.time()-end_time))
 
         # ground truth
         if hp.labeled_type == 2:

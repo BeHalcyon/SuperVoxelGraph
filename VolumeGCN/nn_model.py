@@ -96,7 +96,7 @@ def nnModel(hp, f_init, train_data, train_label):
 
     model = Sequential()
     model.add(Dense(units=hp.hidden1,
-                    input_dim=hp.vec_dim,
+                    input_dim=f_init.shape[1],
                     kernel_initializer='normal',
                     activation='relu'))
     model.add(Dense(units=hp.hidden2,
@@ -111,7 +111,7 @@ def nnModel(hp, f_init, train_data, train_label):
                               y=y_train_onehot,
                               validation_split=1 - hp.ratio,
                               epochs=50,
-                              batch_size=128,
+                              batch_size=32,
                               verbose=2)
     # train_data, test_data, train_label, test_label = train_test_split(x, y, random_state=1, train_size=hp.ratio,
     #                                                 test_size=1-hp.ratio)  # sklearn.model_selection.
@@ -132,9 +132,10 @@ def nnModel(hp, f_init, train_data, train_label):
 
     predictions = model.predict_classes(f_init)
     print(predictions)
-    print("Predicting time for rf : {}s".format(time.time() - time_end))
+    prediction_time = time.time() - time_end
+    print("Predicting time for rf : {}s".format(prediction_time))
 
-    return predictions.flatten().astype(np.int32), time_end-time_start
+    return predictions.flatten().astype(np.int32), time_end-time_start, f1_score, prediction_time
 
 
 if __name__ == '__main__':

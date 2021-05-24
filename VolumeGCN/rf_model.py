@@ -110,10 +110,10 @@ def rfModel(f_init, train_data, train_label, test_data, test_label):
 
     # print("All predict result : ")
     predictions = clf.predict(f_init)
+    prediction_time = time.time() - time_end
+    print("Predicting time for rf : {}s".format(prediction_time))
 
-    print("Predicting time for rf : {}s".format(time.time() - time_end))
-
-    return predictions.flatten().astype(np.int32), time_end-time_start
+    return predictions.flatten().astype(np.int32), time_end-time_start, f1_score, prediction_time
 
 
 def parameterSelect(train_data, train_label):

@@ -119,7 +119,7 @@ def prepareLabeledData(hp, f_init):
     labeled_voxel_volume = None
     # for ground truth data
     if hp.labeled_type == 2:
-        train_label_ratio = 0.0001
+        train_label_ratio = 0.001
         labeled_voxel_file = hp.workspace + hp.labeled_file  # .label
         labeled_voxel_file = hp.workspace + hp.groundtruth_label_voxel_file  # .raw
         # labeled_voxel_volume = np.load(labeled_voxel_file).flatten()
@@ -188,23 +188,23 @@ def main():
     #     type = input()
         time_start = time.time()
         if type == 'rf':
-            predictions, training_time = rfModel(f_init, train_data, train_label, test_data, test_label)
+            predictions, training_time, test_f1, predicting_time = rfModel(f_init, train_data, train_label, test_data, test_label)
             predictions.tofile(hp.workspace+hp.voxel_based_rf_predict_file)
             labelVoxel2Nii(hp, predictions+1, hp.voxel_based_rf_predict_file.split('.')[0]+'.nii')
             # break
         elif type == 'nn':
             hp.vec_dim = 11
-            predictions, training_time = nnModel(hp, f_init, train_data, train_label)
+            predictions, training_time, test_f1, predicting_time = nnModel(hp, f_init, train_data, train_label)
             predictions.tofile(hp.workspace+hp.voxel_based_nn_predict_file)
             labelVoxel2Nii(hp, predictions+1, hp.voxel_based_nn_predict_file.split('.')[0] + '.nii')
             # break
         elif type == 'svm':
-            predictions, training_time = svmModel(f_init, train_data, test_label, test_data, train_label)
+            predictions, training_time, test_f1, predicting_time = svmModel(f_init, train_data, test_label, test_data, train_label)
             predictions.tofile(hp.workspace+hp.voxel_based_svm_predict_file)
             labelVoxel2Nii(hp, predictions+1, hp.voxel_based_svm_predict_file.split('.')[0] + '.nii')
             # break
         elif type == 'knn':
-            predictions, training_time = knnModel(f_init, train_data, train_label, test_data, test_label)
+            predictions, training_time, test_f1, predicting_time = knnModel(f_init, train_data, train_label, test_data, test_label)
             predictions.tofile(hp.workspace+hp.voxel_based_knn_predict_file)
             labelVoxel2Nii(hp, predictions+1, hp.voxel_based_knn_predict_file.split('.')[0] + '.nii')
             # break
@@ -227,9 +227,12 @@ def main():
             print("accuracy score : {}".format(acc))
 
             # logger = logger_config(hp.workspace + "metric_log.txt")
-            logger.info("voxelbased-{}: precision: {}, recall: {}, f1: {}, accuracy : {}, time : {}".
-                        format(type, precision, recall, f1, acc, training_time))
+            logger.info("voxelbased-{}: precision: {}, recall: {}, f1: {}, accuracy : {}, time : {:.2f}, p-time : {:.2f}".
+                        format(type, precision, recall, f1, acc, training_time, predicting_time))
         else:
+            logger.info("voxelbased-{}: test f1 score: {}, time : {}".
+                        format(type, test_f1, training_time))
+            continue
             for i in range(hp.label_type_number):
                 buf_volume_array = np.zeros(dtype=volume_raw_data.dtype, shape=volume_raw_data.shape)
                 buf_index_array = np.array(np.where(predictions == i))

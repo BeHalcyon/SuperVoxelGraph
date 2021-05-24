@@ -97,9 +97,11 @@ def knnModel(f_init, train_data, train_label, test_data, test_label):
 
 
     if f_init.shape[0] < 1e5:
+
         predict_result = knn.predict(f_init)
+        prediction_time = time.time() - time_end
         print("Predicting time for rf : {}s".format(time.time() - time_end))
-        return predict_result.flatten().astype(np.int32), time_end-time_start
+        return predict_result.flatten().astype(np.int32), time_end-time_start, f1_score, prediction_time
 
     batch_size = 4196
     batch_number = (f_init.shape[0]+batch_size-1)//batch_size
@@ -111,11 +113,11 @@ def knnModel(f_init, train_data, train_label, test_data, test_label):
         if i == batch_number - 1:
             end_pos = f_init.shape[0]
         predict_result[i*batch_size:end_pos] = knn.predict(f_init[i*batch_size:end_pos, :])
-
+    prediction_time = time.time() - time_end
     # predict_result = classifier.predict(f_init)
     print("Predicting time for rf : {}s".format(time.time() - time_end))
 
-    return predict_result.flatten().astype(np.int32), time_end-time_start
+    return predict_result.flatten().astype(np.int32), time_end-time_start, f1_score, prediction_time
 
 
     # predict all results
