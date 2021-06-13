@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <cmath>
+#include <cstring>
 
 
 /**
@@ -34,7 +36,7 @@ void loadAndTransVolume(vector<string> volume_file_name, hxy::my_int3& volume_re
 
 			std::cout << "The file size is : " << fileSize << std::endl;
 
-			
+
 			const long long volume_length = volume_res.z*volume_res.y*volume_res.x;
 			origin_data[i].resize(volume_length);
 			target_data[i].resize(volume_length);
@@ -70,7 +72,7 @@ SourceVolume::SourceVolume(std::string type_name, int regular_histogram_dimensio
 }
 
 SourceVolume::SourceVolume(vector<string> file_name, int x, int y, int z, std::string type_name, int regular_histogram_dimension, int downing_sampling_histogram_dimension)
-	:type_name(type_name), regular_histogram_dimension(regular_histogram_dimension), volume_length(0), 
+	:type_name(type_name), regular_histogram_dimension(regular_histogram_dimension), volume_length(0),
 	fixed_index(0), test_index(0), downing_sampling_histogram_dimension(downing_sampling_histogram_dimension)
 {
 	is_data_in_memory = false;
@@ -235,9 +237,9 @@ std::vector<unsigned char>* SourceVolume::getDownsamplingUcharVolume(int index)
 }
 /**
  * \brief Get the down sampling volume \note Only two variables are supposed.
- * \param fixed_index 
- * \param test_index 
- * \return 
+ * \param fixed_index
+ * \param test_index
+ * \return
  */
 std::vector<int>* SourceVolume::getDownsamplingVolume(int fixed_index, int test_index)
 {
@@ -267,8 +269,8 @@ std::vector<int>* SourceVolume::getDownsamplingVolume(int fixed_index, int test_
 
 /**
  * \brief Get the down sampling volume \note Multivariate variables are supposed.
- * \param index_array 
- * \return 
+ * \param index_array
+ * \return
  */
 
 std::vector<int>* SourceVolume::getDownsamplingVolume(const vector<int>& index_array)
@@ -377,10 +379,10 @@ void SourceVolume::calcHistogramDistribution()
 			regularization_histogram_distribution[i][j] = std::min(regularization_histogram_distribution[i][j], 1.0);
 		}
 		histogram_distribution_file << origin_histogram_distribution[i][downing_sampling_histogram_dimension - 1] << std::endl;
-		regularization_histogram_distribution[i][downing_sampling_histogram_dimension - 1] = 
-			(origin_histogram_distribution[i][downing_sampling_histogram_dimension - 1] == 0) ? 
+		regularization_histogram_distribution[i][downing_sampling_histogram_dimension - 1] =
+			(origin_histogram_distribution[i][downing_sampling_histogram_dimension - 1] == 0) ?
 			0 : log(origin_histogram_distribution[i][downing_sampling_histogram_dimension - 1]) / log(second_max_count);
-		regularization_histogram_distribution[i][downing_sampling_histogram_dimension - 1] = 
+		regularization_histogram_distribution[i][downing_sampling_histogram_dimension - 1] =
 			std::min(regularization_histogram_distribution[i][downing_sampling_histogram_dimension - 1], 1.0);
 	}
 	histogram_distribution_file.close();
@@ -469,7 +471,7 @@ void SourceVolume::setFileAndRes(vector<string>& file_name, hxy::my_int3& resolu
 void SourceVolume::getIndexArrayBasedFixedVariable(vector<int>& index_array, const int max_fixed_value,
 	const int min_fixed_value)
 {
-	//index_array ±íÊ¾ÔÚµÚÒ»¸ö±äÁ¿·¶Î§ÄÚ£¬µÚ¶þ¸ö±äÁ¿µÄÊý¾Ý·Ö²¼½á¹û¡£Èç¹ûµÚÒ»¸ö±äÁ¿ÔÚÖ¸¶¨·¶Î§ÄÚ£¬Ôòindex_array[µ±Ç°ÌåËØµÄµÚ¶þ¸ö±äÁ¿]=1
+	//index_array ï¿½ï¿½Ê¾ï¿½Úµï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î§ï¿½Ú£ï¿½ï¿½Ú¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý·Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Î§ï¿½Ú£ï¿½ï¿½ï¿½index_array[ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ØµÄµÚ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]=1
 	//Debug 20190221 fix the initial value of index_array to -1
 
 	if(volume_number<2)

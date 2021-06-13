@@ -1,5 +1,5 @@
 #pragma once
-#include <qwidget.h>
+#include <QtWidgets/QWidget>
 #include "ui_ParameterControlWidget.h"
 class ParameterControlWidget :
 	public QWidget

@@ -2,6 +2,7 @@
 #include <vector>
 #include "../SLIC3DSuperVoxel/VMUtils/include/VMUtils/fmt.hpp"
 #include <fstream>
+#include <cmath>
 
 struct Sphere
 {
@@ -21,12 +22,12 @@ public:
 
 	void addSphere(const std::vector<size_t>& central_point, double radius, T value);
 	void addSphere(const Sphere & sphere);
-	
+
 	void saveVolume(std::string file_path = "");
 	void saveGroundTruthLabelVolume(std::string file_path);
 
 	inline void clearVolume() { volume_data.resize(volume_size, 0); shape_number = 0; }
-	
+
 private:
 	void calcSphereBoundingBox(const Sphere& sphere, std::vector<int>& min_bounding_box, std::vector<int>& max_bounding_box);
 	bool isInSphere(const std::vector<size_t>& point, const Sphere& sphere);
@@ -81,7 +82,7 @@ void VolumeGenerator<T>::addSphere(const Sphere& sphere)
 
 
 	auto& point_coor = sphere.central_point;
-	
+
 	for(size_t k=min_bounding_box[2];k<=max_bounding_box[2];k++)
 	{
 		for (size_t j = min_bounding_box[1]; j <= max_bounding_box[1]; j++)
@@ -98,7 +99,7 @@ void VolumeGenerator<T>::addSphere(const Sphere& sphere)
 					auto value = sphere.value + (distance  / sphere.radius) * sphere.range;
 
 					if (value < 0) value = 0;
-					
+
 					volume_data[index] = static_cast<T>(value);
 					volume_ground_true_data[index] = shape_number+1;
 				}
@@ -124,7 +125,7 @@ void VolumeGenerator<T>::saveVolume(std::string file_path)
 	if (file_path == "") file_path = "./";
 	vm::println("{} has been generated in path {}", file_name, file_path);
 
-	
+
 	// vifo
 	std::ofstream vifo_writer(file_path + file_name + ".vifo");
 

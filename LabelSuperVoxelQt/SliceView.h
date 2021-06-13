@@ -2,6 +2,7 @@
 #include <QGraphicsView>
 #include "../SLIC3DSuperVoxel/SourceVolume.h"
 #include <QMap>
+#include <QPainterPath>
 
 
 class SliceView :

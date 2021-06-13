@@ -1,5 +1,7 @@
 #include "SLIC3D.h"
 #include <iostream>
+#include <cmath>
+#include <cassert>
 
 
 SLIC3D::SLIC3D()
@@ -58,20 +60,20 @@ void SLIC3D::PerformSLICO_ForGivenK(
 	// 		m_bvec[i] = ubuff[i] & 0xff;
 	// 	}
 	// }
-	//³õÊ¼»¯Êý¾Ý
+	//ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_volumevec = new double[sz];
 	for (auto i = 0; i < sz; i++) m_volumevec[i] = ubuff[i];
 	//--------------------------------------------------
 
 	bool perturbseeds(true);
-	//edgemag±íÊ¾Í¼ÖÐµÄÃ¿¸ö½Úµã¶ÔÓ¦µÄÌÝ¶È²î
+	//edgemagï¿½ï¿½Ê¾Í¼ï¿½Ðµï¿½Ã¿ï¿½ï¿½ï¿½Úµï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Ý¶È²ï¿½
 	vector<double> edgemag(0);
-	//¸ù¾ÝÌåËØµãµÄÌÝ¶ÈÖµºâÁ¿ÌåËØµãµÄ±ä»¯³Ì¶È
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½Ý¶ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½Ä±ä»¯ï¿½Ì¶ï¿½
 	if (perturbseeds) DetectLabEdges(m_volumevec, m_width, m_height, m_depth, edgemag);
-	//»ñÈ¡¶ÔÓ¦µÄÖÖ×Óµã£¬ÇÒ½«ÖÖ×ÓµãÈÅÂÒ
+	//ï¿½ï¿½È¡ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½Óµã£¬ï¿½Ò½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½
 	GetLABXYSeeds_ForGivenK(kseedintensity, kseedsx, kseedsy, kseedsz, K, perturbseeds, edgemag);
 
-	//²½³¤Ì«Ð¡µÄÇé¿öÏÂ£¬Ìí¼ÓÒ»¸öÐ¡µÄÖµ¡£¸Ã²½³¤Ö¸µÄÊÇÃ¿¸ösupervoxelµÄ³õÊ¼±ß³¤
+	//ï¿½ï¿½ï¿½ï¿½Ì«Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ð¡ï¿½ï¿½Öµï¿½ï¿½ï¿½Ã²ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½supervoxelï¿½Ä³ï¿½Ê¼ï¿½ß³ï¿½
 	int STEP = pow(double(sz) / double(K), 1.0/3) + 2.0;//adding a small value in the even the STEP size is too small.
 	//PerformSuperpixelSLIC(kseedsl, kseedsa, kseedsb, kseedsx, kseedsy, klabels, STEP, edgemag, m);
 	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 10, m);
@@ -124,21 +126,21 @@ void SLIC3D::PerformSLICO_ForGivenK(
 	// 		m_bvec[i] = ubuff[i] & 0xff;
 	// 	}
 	// }
-	//³õÊ¼»¯Êý¾Ý
+	//ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_volumevec = new double[sz];
 	for (auto i = 0; i < sz; i++) m_volumevec[i] = ubuff[i];
 	//--------------------------------------------------
 
 	bool perturbseeds(true);
 	edgemag.clear();
-	//¸ù¾ÝÌåËØµãµÄÌÝ¶ÈÖµºâÁ¿ÌåËØµãµÄ±ä»¯³Ì¶È
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½Ý¶ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½Ä±ä»¯ï¿½Ì¶ï¿½
 	if (perturbseeds) DetectLabEdges(m_volumevec, m_width, m_height, m_depth, edgemag);
 	std::cout << "Seed points has been initialized." << std::endl;
-	//»ñÈ¡¶ÔÓ¦µÄÖÖ×Óµã£¬ÇÒ½«ÖÖ×ÓµãÈÅÂÒ
+	//ï¿½ï¿½È¡ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½Óµã£¬ï¿½Ò½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½
 	GetLABXYSeeds_ForGivenK(kseedintensity, kseedsx, kseedsy, kseedsz, K, perturbseeds, edgemag);
 	std::cout << "Seed points has been perturbed." << std::endl;
 
-	//²½³¤Ì«Ð¡µÄÇé¿öÏÂ£¬Ìí¼ÓÒ»¸öÐ¡µÄÖµ
+	//ï¿½ï¿½ï¿½ï¿½Ì«Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ð¡ï¿½ï¿½Öµ
 	int STEP = pow(double(sz) / double(K), 1.0 / 3) + 2.0;//adding a small value in the even the STEP size is too small.
 	//PerformSuperpixelSLIC(kseedsl, kseedsa, kseedsb, kseedsx, kseedsy, klabels, STEP, edgemag, m);
 	PerformSuperpixelSegmentation_VariableSandM(kseedintensity, kseedsx, kseedsy, kseedsz, klabels, STEP, 20, m);
@@ -162,12 +164,12 @@ void SLIC3D::PerformSLICO_ForGivenK(
 ///		1. finding an adjacent label for each new component at the start
 ///		2. if a certain component is too small, assigning the previously found
 ///		    adjacent label to this component, and not incrementing the label.
-///		º¯ÊýEnforceLabelConnectivityÊµÏÖÁËÁ¬Í¨ÇøÓòµÄÖØÐÂ¸³Öµ£¬Ö®Ç°ËùÓÐµÄlabelÖµÊÇ
-///		¾ÛÀàÖÐÐÄµÄÖµ£¬Í¨¹ýÕâ¸öº¯Êý½«ÆäÍ³Ò»³¬ÏñËØµÄ±àºÅ£¬´Ó0¿ªÊ¼Ò»Ö±µ½×îºóÒ»¸ö³¬Ïñ
-///		ËØ£¬È»ºó»áÍ³¼ÆÃ¿¸ö³¬ÏñËØËùÕ¼µÄÏñËØ£¬Èç¹ûÌ«Ð¡µÄ»°»á½øÐÐºÏ²¢
+///		ï¿½ï¿½ï¿½ï¿½EnforceLabelConnectivityÊµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¸ï¿½Öµï¿½ï¿½Ö®Ç°ï¿½ï¿½ï¿½Ðµï¿½labelÖµï¿½ï¿½
+///		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½Öµï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í³Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ØµÄ±ï¿½Å£ï¿½ï¿½ï¿½0ï¿½ï¿½Ê¼Ò»Ö±ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+///		ï¿½Ø£ï¿½È»ï¿½ï¿½ï¿½Í³ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½ï¿½Ø£ï¿½ï¿½ï¿½ï¿½Ì«Ð¡ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ÐºÏ²ï¿½
 //===========================================================================
 void SLIC3D::EnforceLabelConnectivity(
-	const int*					labels,//input labels that need to be corrected to remove stray labels //ÐèÒª±»¾ÀÕýµÄÊý×é
+	const int*					labels,//input labels that need to be corrected to remove stray labels //ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	const int&					width,
 	const int&					height,
 	const int&					depth,
@@ -187,13 +189,13 @@ void SLIC3D::EnforceLabelConnectivity(
 	const int dz6[6] = {  0,  0,  0,  0, -1,  1 };
 
 	const int sz = width * height * depth;
-	//Ã¿¸öÐ¡Íø¸ñÏñËØµÄ´óÐ¡
+	//Ã¿ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ØµÄ´ï¿½Ð¡
 	const int SUPSZ = sz / K;
 	//nlabels.resize(sz, -1);
-	//nlabelsÎª¾­¹ýÕâ¸öº¯Êý´¦ÀíÊä³öµÄÊý×é
+	//nlabelsÎªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	for (int i = 0; i < sz; i++) nlabels[i] = -1;
 	int label(0);
-	//ÕâÁ¬¸öÊý×é¶¼ÓÐÕû¸öÍ¼Æ¬ÄÇÃ´´ó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¶¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼Æ¬ï¿½ï¿½Ã´ï¿½ï¿½
 	int* xvec = new int[sz];
 	int* yvec = new int[sz];
 	int* zvec = new int[sz];
@@ -219,14 +221,14 @@ void SLIC3D::EnforceLabelConnectivity(
 					//-------------------------------------------------------
 					// Quickly find an adjacent label for use later if needed
 					//-------------------------------------------------------
-					//Ñ°ÕÒÒ»¸öÏàÁÚµÄÇøÓòµÄlabel
+					//Ñ°ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½label
 					{
 						for (int n = 0; n < 6; n++)
 						{
 							int x = xvec[0] + dx6[n];
 							int y = yvec[0] + dy6[n];
 							int z = zvec[0] + dz6[n];
-							//²é¿´ÁÚÓòÀïÃæÊÇ·ñÓÐ´óÓÚµÈÓÚ0µÄnlabels£¬Èç¹ûÓÐµÄ»°¾ÍÊÇadjlabel
+							//ï¿½é¿´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ð´ï¿½ï¿½Úµï¿½ï¿½ï¿½0ï¿½ï¿½nlabelsï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÐµÄ»ï¿½ï¿½ï¿½ï¿½ï¿½adjlabel
 							if ((x >= 0 && x < width) && (y >= 0 && y < height) && (z >= 0 && z < depth))
 							{
 								int nindex = z*height*width + y * width + x;
@@ -247,16 +249,16 @@ void SLIC3D::EnforceLabelConnectivity(
 							if ((x >= 0 && x < width) && (y >= 0 && y < height) && (z >= 0 && z < depth))
 							{
 								int nindex = z * height*width + y * width + x;
-								//Õâ¸öÁÚÓòÏñËØÃ»ÓÐ´¦Àí¹ý && Õâ¸öÁÚÓòÏñËØµÄlabelºÍÖÐÐÄÏñËØµÄlabelÒ»ÖÂ
+								//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ && ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½labelï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½labelÒ»ï¿½ï¿½
 								if (0 > nlabels[nindex] && labels[oindex] == labels[nindex])
 								{
-									//°Ñ×ø±ê´æ½øÈ¥£¬¾ÍÊÇ¼ÇÂ¼ÏÂÓÐÄÄÐ©×ø
+									//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¥ï¿½ï¿½ï¿½ï¿½ï¿½Ç¼ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð©ï¿½ï¿½
 									xvec[count] = x;
 									yvec[count] = y;
 									zvec[count] = z;
-									//ÏòÁìÓòÏñËØÀ©Õ¹
+									//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹
 									nlabels[nindex] = label;
-									//ÒòÎªÕâ¸öcount»áÒ»Ö±Ôö¼Ó£¬Òò´ËÁÚÓòÒ²»áÒ»Ö±À©Õ¹£¬Ö±µ½ÖÜÎ§Ã»ÓÐÁÚÓòÏñËØ¿ÉÒÔÔÙÀ©Õ¹ÁËÎªÖ¹
+									//ï¿½ï¿½Îªï¿½ï¿½ï¿½countï¿½ï¿½Ò»Ö±ï¿½ï¿½ï¿½Ó£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½Ò»Ö±ï¿½ï¿½Õ¹ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½Î§Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½ÎªÖ¹
 									count++;
 								}
 							}
@@ -267,8 +269,8 @@ void SLIC3D::EnforceLabelConnectivity(
 					// If segment size is less then a limit, assign an
 					// adjacent label found before, and decrement label count.
 					//-------------------------------------------------------
-					//ÇøÓò¹ýÐ¡µÄ»°£¬ÐèÒªÖ±½ÓÓëÁÚ½üÇøÓòºÏ²¢
-					//TODO ÈýÎ¬Çé¿öÏÂ£¬³¬ÌåËØ¿ÉÄÜÐèÒªÐÞ¸Ä£¬Ô­Ê¼ÊÇcount <= SUPSZ >> 2
+					//ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÖ±ï¿½ï¿½ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½Ï²ï¿½
+					//TODO ï¿½ï¿½Î¬ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¿ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½Þ¸Ä£ï¿½Ô­Ê¼ï¿½ï¿½count <= SUPSZ >> 2
 					//Debug 20200702 do not to merge adjacent.
 					if (count <= SUPSZ >> 3)
 					{
@@ -344,30 +346,30 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 
 	vector<int> clustersize(numk, 0);
 	vector<double> inv(numk, 0);//to store 1/clustersize[k] values
-	//vector<double> distxy(sz, DBL_MAX);
-	//vector<double> distlab(sz, DBL_MAX);
+	//vector<double> distxy(sz, ::max()BL_MAX);
+	//vector<double> distlab(sz, ::max()BL_MAX);
 
-	vector<double> distxyz(sz, DBL_MAX);
-	vector<double> distintensity(sz, DBL_MAX);
+	vector<double> distxyz(sz, std::numeric_limits<double>::max());
+	vector<double> distintensity(sz, std::numeric_limits<double>::max());
 
-	vector<double> distvec(sz, DBL_MAX);
-	
+	vector<double> distvec(sz, std::numeric_limits<double>::max());
+
 	//vector<double> maxlab(numk, 10 * 10);//THIS IS THE VARIABLE VALUE OF M, just start with 10
-	//×î´óÁÁ¶ÈÖµ£¬Ïàµ±ÓÚ¿ØÖÆÁÁ¶ÈµÄÈ¨ÖØ£¬ mÔ½´ó£¬ÆäÈ¨ÖØÔ½Ð¡£¬ÕâÀïÉèÖÃÎª¶¨Öµ£¿
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½àµ±ï¿½Ú¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Èµï¿½È¨ï¿½Ø£ï¿½ mÔ½ï¿½ï¿½ï¿½ï¿½È¨ï¿½ï¿½Ô½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Öµï¿½ï¿½
 	//vector<double> maxintensity(numk, 10*2);
 	//Debug 20200519 add the compactness_factor
 	vector<double> maxintensity(numk, compactness_factor);
 
 	//vector<double> maxxy(numk, STEP*STEP);//THIS IS THE VARIABLE VALUE OF M, just start with 10
 	vector<double> maxxyz(numk, STEP*STEP*STEP);
-	
+
 
 	double invxywt = 1.0 / (STEP*STEP*STEP);//NOTE: this is different from how usual SLIC/LKM works
 
 	//Debug 20200702
 	double weight = 0.65;
 	std::cout << "Weight : " << weight << std::endl;
-	
+
 	while (numitr < NUMITR)
 	{
 		//------
@@ -375,7 +377,7 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 		numitr++;
 		//------
 
-		distvec.assign(sz, DBL_MAX);
+		distvec.assign(sz, std::numeric_limits<double>::max());
 
 		// for each voxel, find the closest seed point and assign the label to the seed.
 		for (int n = 0; n < numk; n++)
@@ -395,11 +397,11 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 					for (auto x = x1; x < x2; x++)
 					{
 						int i = z * m_height*m_width + y * m_width + x;
-						_ASSERT(z < m_depth&&z >= 0 && y < m_height&&y >= 0 && x < m_width&&x >= 0);
+						assert(z < m_depth&&z >= 0 && y < m_height&&y >= 0 && x < m_width&&x >= 0);
 						distintensity[i] = (m_volumevec[i] - kseedintensity[n])*(m_volumevec[i] - kseedintensity[n]);
 						distxyz[i] = (z - kseedsz[n])*(z - kseedsz[n]) + (y - kseedsy[n])*(y - kseedsy[n]) + (x - kseedsx[n])*(x - kseedsx[n]);
 
-						//Debug 20191108 ¿ÉÐÞ¸Ä¾àÀëÓ³Éä£¬¼õÉÙinvxywtÄÜÓÐÐ§½µµÍ¾àÀëµÄÈ¨ÖØ£¬¼õÉÙmaxintensity[n]ÄÜÓÐÐ§Ìá¸ß»Ò¶ÈÖµµÄÈ¨ÖØ
+						//Debug 20191108 ï¿½ï¿½ï¿½Þ¸Ä¾ï¿½ï¿½ï¿½Ó³ï¿½ä£¬ï¿½ï¿½ï¿½ï¿½invxywtï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½Í¾ï¿½ï¿½ï¿½ï¿½È¨ï¿½Ø£ï¿½ï¿½ï¿½ï¿½ï¿½maxintensity[n]ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ß»Ò¶ï¿½Öµï¿½ï¿½È¨ï¿½ï¿½
 						double dist = weight*distintensity[i] / maxintensity[n] + (1-weight)*distxyz[i] * invxywt;//only varying m, prettier superpixels
 
 						if (dist < distvec[i])
@@ -423,9 +425,9 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 		{
 			for (int i = 0; i < sz; i++)
 			{
-				if (maxintensity[klabels[i]] < distintensity[i]) 
+				if (maxintensity[klabels[i]] < distintensity[i])
 					maxintensity[klabels[i]] = distintensity[i];
-				if (maxxyz[klabels[i]] < distxyz[i]) 
+				if (maxxyz[klabels[i]] < distxyz[i])
 					maxxyz[klabels[i]] = distxyz[i];
 			}
 		}
@@ -441,9 +443,9 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 		for (int j = 0; j < sz; j++)
 		{
 			int temp = klabels[j];
-			_ASSERT(klabels[j] >= 0);
+			assert(klabels[j] >= 0);
 			sigmaintensity[klabels[j]] += m_volumevec[j];
-			
+
 			sigmaz[klabels[j]] += (j / (m_height*m_width));
 			auto buf = j % (m_height*m_width);
 			sigmax[klabels[j]] += (buf%m_width);
@@ -496,7 +498,7 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 		{
 			std::cout << "Iteration " << numitr << "/" << NUMITR << " has been executed." << std::endl;
 		}
-		
+
 	}
 }
 
@@ -505,11 +507,11 @@ void SLIC3D::PerformSuperpixelSegmentation_VariableSandM(
 
 /**
  * \brief Calculate the gradient squared of each voxel and store them in edges.
- * \param volumevec 
- * \param width 
- * \param height 
- * \param depth 
- * \param edges 
+ * \param volumevec
+ * \param width
+ * \param height
+ * \param depth
+ * \param edges
  */
 void SLIC3D::DetectLabEdges(
 	const double*				volumevec,
@@ -529,14 +531,14 @@ void SLIC3D::DetectLabEdges(
 			for (int k = 1; k < width - 1; k++)
 			{
 				auto i = q * height*width + j * width + k;
-				//dx¼ì²âx·½ÏòÉÏµÄÌÝ¶ÈÆ½·½
+				//dxï¿½ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½Ý¶ï¿½Æ½ï¿½ï¿½
 				double dx = (volumevec[i - 1] - volumevec[i + 1])*(volumevec[i - 1] - volumevec[i + 1]);
-				//dy¼ì²ây·½ÏòÉÏµÄÌÝ¶ÈÆ½·½
+				//dyï¿½ï¿½ï¿½yï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½Ý¶ï¿½Æ½ï¿½ï¿½
 				double dy = (volumevec[i - width] - volumevec[i + width])*(volumevec[i - width] - volumevec[i + width]);
-				//dz¼ì²âz·½ÏòÉÏµÄÌÝ¶ÈÆ½·½
+				//dzï¿½ï¿½ï¿½zï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½Ý¶ï¿½Æ½ï¿½ï¿½
 				double dz = (volumevec[i - width*height] - volumevec[i + width * height])*(volumevec[i - width * height] - volumevec[i + width * height]);
 
-				//edges±íÊ¾ÌåËØµãµÄÊýÖµÌÝ¶È´óÐ¡
+				//edgesï¿½ï¿½Ê¾ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½Öµï¿½Ý¶È´ï¿½Ð¡
 				//edges[i] = (sqrt(dx) + sqrt(dy));
 				edges[i] = (dx + dy + dz);
 			}
@@ -551,7 +553,7 @@ void SLIC3D::DetectLabEdges(
 /// The k seed values are taken as uniform spatial pixel samples.
 //===========================================================================
 void SLIC3D::GetLABXYSeeds_ForGivenK(
-	//l a b x y±íÊ¾ÖÖ×ÓµãµÄÐÅÏ¢
+	//l a b x yï¿½ï¿½Ê¾ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½Ï¢
 	vector<double>&				kseedintensity,
 	vector<double>&				kseedsx,
 	vector<double>&				kseedsy,
@@ -561,11 +563,11 @@ void SLIC3D::GetLABXYSeeds_ForGivenK(
 	const vector<double>&		edgemag)
 {
 	int sz = m_width * m_height * m_depth;
-	//step±íÊ¾ÖÖ×ÓµãÖ®¼äµÄ¾àÀë
+	//stepï¿½ï¿½Ê¾ï¿½ï¿½ï¿½Óµï¿½Ö®ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½
 	//double step = sqrt(double(sz) / double(K));
 	double step = pow(double(sz) / double(K), 1.0/3);
 	int T = step;
-	//xoffºÍyoff±íÊ¾³õÊ¼µÄÖÖ×ÓµãÎ»ÖÃ
+	//xoffï¿½ï¿½yoffï¿½ï¿½Ê¾ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½Î»ï¿½ï¿½
 	int xoff = step / 2;
 	int yoff = step / 2;
 	int zoff = step / 2;
@@ -577,14 +579,14 @@ void SLIC3D::GetLABXYSeeds_ForGivenK(
 	{
 		int Z = z * step + zoff;
 		if (Z > m_depth - 1) break;
-		//rÔÚÒ»´ÎÑ­»·½áÊøºó£¬Èç¹ûÎªÅ¼Êý£¬Ôò½«ÆäÉèÖÃÎªÆæÊý£¬ÒÔ±£Ö¤ÉÏÏÂÁ½²ãµÄ³õÊ¼ÖÖ×Óµã²»Ò»ÖÂ
+		//rï¿½ï¿½Ò»ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÅ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±ï¿½Ö¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä³ï¿½Ê¼ï¿½ï¿½ï¿½Óµã²»Ò»ï¿½ï¿½
 		if (!(r & 0x1)) r = 1;
 		//else r = 0;
 		for(auto y =0;y<m_height;y++)
 		{
 			int Y = y * step + yoff;
 			if (Y > m_height - 1) break;
-			
+
 			for(auto x=0;x<m_width;x++)
 			{
 				//int X = x*step + xoff;//square grid
@@ -603,7 +605,7 @@ void SLIC3D::GetLABXYSeeds_ForGivenK(
 		}
 	}
 
-	//ÈÅÂÒÖÖ×Óµã£¬ÖÖ×ÓµãµÄÎ¢Ð¡ÒÆ¶¯
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµã£¬ï¿½ï¿½ï¿½Óµï¿½ï¿½Î¢Ð¡ï¿½Æ¶ï¿½
 	if (perturbseeds)
 	{
 		PerturbSeeds(kseedintensity, kseedsx, kseedsy, kseedsz, edgemag);
@@ -611,7 +613,7 @@ void SLIC3D::GetLABXYSeeds_ForGivenK(
 }
 
 //===========================================================================
-///	PerturbSeeds ÖÖ×ÓµãµÄÎ¢Ð¡ÒÆ¶¯ È¡ÖÜÎ§26¸öÁÚÓò
+///	PerturbSeeds ï¿½ï¿½ï¿½Óµï¿½ï¿½Î¢Ð¡ï¿½Æ¶ï¿½ È¡ï¿½ï¿½Î§26ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //===========================================================================
 void SLIC3D::PerturbSeeds(
 	vector<double>&				kseedintensity,
@@ -622,7 +624,7 @@ void SLIC3D::PerturbSeeds(
 {
 	//const int dx8[8] = { -1, -1,  0,  1, 1, 1, 0, -1 };
 	//const int dy8[8] = { 0, -1, -1, -1, 0, 1, 1,  1 };
-	
+
 	const int dx26[26] = { -1,  0,  1, -1,  0,  1, -1,  0,  1, -1,  0,  1, -1,  1, -1,  0,  1, -1,  0,  1, -1,  0,  1, -1,  0,  1 };
 	const int dy26[26] = { -1, -1, -1,  0,  0,  0,  1,  1,  1, -1, -1, -1,  0,  0,  1,  1,  1, -1, -1, -1,  0,  0,  0,  1,  1,  1 };
 	const int dz26[26] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1 };
@@ -637,7 +639,7 @@ void SLIC3D::PerturbSeeds(
 
 		int oind = oz*m_height*m_width + oy * m_width + ox;
 
-		//Èç¹ûµ±Ç°½ÚµãµÄ²îÒìÐÔ¸üÐ¡£¬Ôò±£´æ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½Úµï¿½Ä²ï¿½ï¿½ï¿½ï¿½Ô¸ï¿½Ð¡ï¿½ï¿½ï¿½ò±£´ï¿½
 		int storeind = oind;
 		for (int i = 0; i < 26; i++)
 		{
@@ -654,7 +656,7 @@ void SLIC3D::PerturbSeeds(
 				}
 			}
 		}
-		//¶¯Ì¬¸üÐÂÐÂµÄÖÖ×Óµã
+		//ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½Óµï¿½
 		if (storeind != oind)
 		{
 			kseedsz[n] = storeind / (m_width*m_height);
@@ -778,7 +780,7 @@ void SLIC3D::SaveSegmentBouyndaries(
 void SLIC3D::SaveGradient(
 	const string&				filename)
 {
-	
+
 	ofstream outfile(filename.c_str(), ios::binary);
 	for (int i = 0; i < edgemag.size(); i++)
 	{

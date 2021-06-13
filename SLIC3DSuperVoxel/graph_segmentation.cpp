@@ -8,10 +8,10 @@
 void GraphSegmentation::buildGraph(
 									const unsigned char * volume_data,
 									const int&		dimension,
-									const int*		label, 
-									const int&		k_number, 
-									const double*	gradient, 
-									const int &		width, 
+									const int*		label,
+									const int&		k_number,
+									const double*	gradient,
+									const int &		width,
 									const int &		height,
 									const int &		depth)
 {
@@ -47,7 +47,7 @@ void GraphSegmentation::buildGraph(
 	}
 
 	// Calculate the max weight of neighbor voxels for each super-voxel (region)
-	
+
 	std::cout << "The nodes id and voxels has been initialized." << std::endl;
 
 	// Update voxle number n and max weight for each node.
@@ -63,7 +63,7 @@ void GraphSegmentation::buildGraph(
 	for(auto i = 0;i<graph.getNumNodes();i++)
 	{
 		auto & node = graph.getNode(i);
-		
+
 		//const auto & voxels = node.voxels;
 		double max_weight = 0;
 
@@ -139,10 +139,10 @@ void GraphSegmentation::buildGraph(
 			for (auto k = 0; k < W; k++)
 			{
 				const auto cur_idx = i * H*W + j * W + k;
-				
+
 				for (auto d : dx3)
 				{
-					
+
 					const auto ii = i + d;
 					const auto jj = j + d;
 					const auto kk = k + d;
@@ -155,8 +155,8 @@ void GraphSegmentation::buildGraph(
 						if(cur_label!=neighbor_label)
 						{
 							label_edge[cur_label][neighbor_label] = std::max(std::max(
-								label_edge[cur_label][neighbor_label], 
-								abs(gradient[cur_idx] - gradient[neighbor_idx])),
+								label_edge[cur_label][neighbor_label],
+								fabs(gradient[cur_idx] - gradient[neighbor_idx])),
 								label_edge[neighbor_label][cur_label]);
 							label_edge[neighbor_label][cur_label] = label_edge[cur_label][neighbor_label];
 						}
@@ -273,7 +273,7 @@ void GraphSegmentation::oversegmentGraph() {
 			// Here comes the magic!
 			if ((*magic)(S_n, S_m, edge)) {
 
-				
+
 				//if(edge.w>100)
 				//{
 				//	std::cout << edge.n << "\t" << edge.m << "\t" << edge.w << std::endl;

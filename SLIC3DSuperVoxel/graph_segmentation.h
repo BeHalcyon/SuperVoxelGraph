@@ -4,6 +4,7 @@
 //#include <opencv2/opencv.hpp>
 #include "image_graph.h"
 #include <iostream>
+#include <cmath>
 
 #define RAND() ((float) std::rand() / (RAND_MAX))
 
@@ -139,13 +140,13 @@ public:
 
 		float threshold = std::min(S_n.max_w + c / S_n.n, S_m.max_w + c / S_m.n);
 
-		
+
 		//std::cout << S_n.id << "\t" << S_m.id << "\t" << "\t" << e.w << "\t" <<
-		//	S_n.max_w << "\t" << S_m.max_w << "\t" << 
+		//	S_n.max_w << "\t" << S_m.max_w << "\t" <<
 		//	S_n.max_w + c / S_n.n << "\t" << S_m.max_w + c / S_m.n << "\t"  << std::endl;
 
 
-		
+
 		//std::cout << "threshold and max weight for s_n and s_m : \t" << threshold <<"\t" << S_n.max_w << "\t" << S_m.max_w<<"\t"<<e.w<< std::endl;
 		return e.w < threshold;
 	}
@@ -193,12 +194,12 @@ public:
 	 * \param[in] image image to oversegment
 	 */
 	void buildGraph(const unsigned char * volume_data,
-		const int&		dimension, 
+		const int&		dimension,
 		const int*		label,
-		const int&		k_number, 
+		const int&		k_number,
 		const double*	gradient,
 		const int &		width,
-		const int &		height, 
+		const int &		height,
 		const int &		depth);
 
 	/** \brief Oversegment the given graph.
@@ -211,7 +212,7 @@ public:
 	void enforceMinimumSegmentSize(int M);
 
 	/** \brief Derive labels from the produced oversegmentation.
-	 * \pram[in] merge_label the 1D array need to allocate memory outside. 
+	 * \pram[in] merge_label the 1D array need to allocate memory outside.
 	 */
 	void deriveLabels(int * merged_label);
 
