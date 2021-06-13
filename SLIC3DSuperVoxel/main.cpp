@@ -22,7 +22,7 @@ void readInfoFile(const string& infoFileName, int& data_number, string& datatype
 	inforFile >> data_number;
 	inforFile >> datatype;
 	inforFile >> dimension.x >> dimension.y >> dimension.z;
-	//Debug 20190520 ����sapce�ӿ�
+	//Debug 20190520
 	inforFile >> space.x >> space.y >> space.z;
 	const string filePath = infoFileName.substr(0, infoFileName.find_last_of('/') == -1?
 		infoFileName.find_last_of('\\') + 1: infoFileName.find_last_of('/')+1);
@@ -46,7 +46,7 @@ void readInfoFile(const string& infoFileName, int& data_number, string& datatype
 
 
 	std::cout << "Info file has been loaded successfully." << std::endl;
-	
+
 }
 
 int readLabelFile(const string& label_file_name, int * label_array, const int& sz)
@@ -94,14 +94,14 @@ int readLabelFile(const string& label_file_name, int * label_array, const int& s
 
 void doSuperVoxelMerge(
 					int *					merged_label,
-					const unsigned char*	volume_data, 
+					const unsigned char*	volume_data,
 					const int &				dimension,
 					const int*				label,
 					const double*			gradient_array,
 					const int &				width,
-					const int &				height, 
+					const int &				height,
 					const int &				depth,
-					const int &				label_number, 
+					const int &				label_number,
 					const int &				k_threshold,
 					const string&			file_path = "")
 {
@@ -178,11 +178,11 @@ void doAlgorithmWithoutCmdLine()
 
 	int k_threshold = 100000;
 	auto merged_label = new int[dimension.x*dimension.y*dimension.z];
-	doSuperVoxelMerge(merged_label, (*volume_data).data(), 
+	doSuperVoxelMerge(merged_label, (*volume_data).data(),
 		source_volume.getRegularDimenion(),
-		klabels, 
+		klabels,
 		slic_3d.getGradient().data(),
-		dimension.x, dimension.y, dimension.z, 
+		dimension.x, dimension.y, dimension.z,
 		num_labels, k_threshold, file_path + "_merged_label.raw");
 
 	slic_3d.DrawContoursAroundSegments(segment_boundary_array, merged_label, dimension.x, dimension.y, dimension.z);
@@ -216,7 +216,7 @@ void doAlgorithmWithCmdLine(int argc, char* argv[])
 		cmdline::oneof<bool>(true, false));
 
 
-	a.add<int>("k_threshold", 'k', "the k threshold when doing super-voxel merged algorithm", false, 100000, 
+	a.add<int>("k_threshold", 'k', "the k threshold when doing super-voxel merged algorithm", false, 100000,
 		cmdline::range(0, 655350000));
 
 	a.add<bool>("merged_label", 'L', "whether output merged label as a raw file (int) or not", false, false,
@@ -242,7 +242,7 @@ void doAlgorithmWithCmdLine(int argc, char* argv[])
 	auto file_path = file_list[0].substr(0, file_list[0].find_last_of('.'));
 
 	SourceVolume source_volume(file_list, dimension.x, dimension.y, dimension.z, datatype);
-	                                                                                                                    
+
 	//source_volume.loadVolume();	//origin data
 	source_volume.loadRegularVolume(); //[0, 255] data
 	//source_volume.loadDownSamplingVolume(); //[0, histogram_dimension] data
@@ -272,7 +272,7 @@ void doAlgorithmWithCmdLine(int argc, char* argv[])
 	if (a.get<bool>("super_voxel_boundary"))
 	{
 
-		slic_3d.SaveSegmentBouyndaries(segment_boundary_array, 
+		slic_3d.SaveSegmentBouyndaries(segment_boundary_array,
 			dimension.x, dimension.y, dimension.z, file_path + "_boundary.raw");
 	}
 
@@ -321,9 +321,9 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 		std::ifstream input_file(configure_json_file);
 		input_file >> configure_json;
 
-		
+
 		//string			infoFileName = configure_json.data_path.vifo_file;
-		
+
 		string			datatype = configure_json.volumes.dtype;
 		hxy::my_int3	dimension = { configure_json.volumes.dimension[0], configure_json.volumes.dimension[1], configure_json.volumes.dimension[2] };
 		//hxy::my_double3	space = { configure_json.volumes.dimension[0], configure_json.volumes.dimension[1], configure_json.volumes.dimension[2] };
@@ -338,7 +338,7 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 		{
 			f = file_path + f;
 		}
-		
+
 		SourceVolume source_volume(file_list, dimension.x, dimension.y, dimension.z, datatype);
 
 		//source_volume.loadVolume();	//origin data
@@ -360,7 +360,7 @@ void doAlgorithmWithJsonConfigure(int argc, char* argv[])
 		int num_labels(0);
 
 		std::cout << "Expected number of supervoxels : " << configure_json.volume2supervoxel.cluster_number << std::endl;
-		
+
 		SLIC3D slic_3d;
 		slic_3d.PerformSLICO_ForGivenK((*volume_data).data(), dimension.x, dimension.y, dimension.z, klabels, num_labels, k, m);
 
