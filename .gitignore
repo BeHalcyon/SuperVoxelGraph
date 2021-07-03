@@ -8,7 +8,6 @@
 *.sln.docstates
 *.gexf
 *.gpickle
-*.txt
 *.csv
 *.raw
 SuperVoxel2Graph_abort/
@@ -281,3 +280,5 @@ workspace/data/abcflow.vifo
 workspace/hist
 workspace/slic3d
 workspace/volgen
+
+workspace

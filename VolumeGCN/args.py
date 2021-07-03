@@ -1,7 +1,6 @@
 # encoding: utf-8
 import argparse
 import json
-from numba import jit
 import numpy as np
 
 def parse_args():
@@ -184,7 +183,6 @@ def evaluationForVoxels(y_true, y_pred):
     return precision, recall, f1, acc
 
 
-@jit
 def volumeSegmentation(label_supervoxel_array, supervoxel_id_array):
     volume_voxel_based_array = np.zeros_like(supervoxel_id_array, dtype=np.int32)
 
