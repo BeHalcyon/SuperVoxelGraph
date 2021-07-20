@@ -82,8 +82,6 @@ if __name__ == "__main__":
     # for i in range(2, len(sys.argv)):
     #     if os.path.exists(sys.argv[i]):
     #         addLabelForGraph(G, sys.argv[i], i-1)
-
-
     # print(G.node[0])
 
     saveGraph(G, gexf_file_name)
